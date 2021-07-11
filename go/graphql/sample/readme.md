@@ -12,13 +12,13 @@ You enter the query you want on the left side, and click play!
 ## Do you have any example queries?
 ```
 {
-  users {
-    name
+  games(titleRegex: "Great"){
+    title
     runs {
-      game {
-        title
-      }
       time
+      runner {
+        name
+      }
     }
   }
 }
