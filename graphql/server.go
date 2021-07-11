@@ -1,37 +1,21 @@
-package main
+package graphql
 
 import (
 	"context"
-	"net/http"
 	"regexp"
-	"time"
+
+	"github.com/speedrun-website/speedrun-rest/data"
 
 	"github.com/samsarahq/go/oops"
 	"github.com/samsarahq/thunder/graphql"
-	"github.com/samsarahq/thunder/graphql/graphiql"
-	"github.com/samsarahq/thunder/graphql/introspection"
 	"github.com/samsarahq/thunder/graphql/schemabuilder"
 )
 
-type user struct {
-	Name string
-}
-
-type run struct {
-	Runner *user
-	Game   *game
-	Time   time.Duration
-}
-
-type game struct {
-	Title string
-}
-
 // server is our graphql server.
 type server struct {
-	users []*user
-	games []*game
-	runs  []*run
+	users []*data.User
+	games []*data.Game
+	runs  []*data.Run
 }
 
 // registerEchoMutation registers the sample echo mutation type.
@@ -45,7 +29,7 @@ func (s *server) registerEchoMutation(schema *schemabuilder.Schema) {
 // registerGame registers the game type.
 func (s *server) registerGame(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
-	queryObj.FieldFunc("games", func(ctx context.Context, args struct{ TitleRegex *string }) ([]*game, error) {
+	queryObj.FieldFunc("games", func(ctx context.Context, args struct{ TitleRegex *string }) ([]*data.Game, error) {
 		if args.TitleRegex == nil {
 			return s.games, nil
 		}
@@ -55,7 +39,7 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 			return nil, oops.Wrapf(err, "compiling regex")
 		}
 
-		var games []*game
+		var games []*data.Game
 		for _, game := range s.games {
 			if re.MatchString(game.Title) {
 				games = append(games, game)
@@ -64,12 +48,12 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 		return games, nil
 	})
 
-	obj := schema.Object("Game", game{})
-	obj.FieldFunc("title", func(ctx context.Context, g *game) string {
+	obj := schema.Object("Game", data.Game{})
+	obj.FieldFunc("title", func(ctx context.Context, g *data.Game) string {
 		return g.Title
 	})
-	obj.FieldFunc("runs", func(ctx context.Context, g *game) []*run {
-		var runs []*run
+	obj.FieldFunc("runs", func(ctx context.Context, g *data.Game) []*data.Run {
+		var runs []*data.Run
 		for _, run := range s.runs {
 			if *run.Game == *g {
 				runs = append(runs, run)
@@ -82,7 +66,7 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 // registerGame registers the user type.
 func (s *server) registerUsers(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
-	queryObj.FieldFunc("users", func(ctx context.Context, args struct{ NameRegex *string }) ([]*user, error) {
+	queryObj.FieldFunc("users", func(ctx context.Context, args struct{ NameRegex *string }) ([]*data.User, error) {
 		if args.NameRegex == nil {
 			return s.users, nil
 		}
@@ -92,7 +76,7 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 			return nil, oops.Wrapf(err, "compiling regex")
 		}
 
-		var users []*user
+		var users []*data.User
 		for _, user := range s.users {
 			if re.MatchString(user.Name) {
 				users = append(users, user)
@@ -101,12 +85,12 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 		return users, nil
 	})
 
-	obj := schema.Object("User", user{})
-	obj.FieldFunc("name", func(ctx context.Context, u *user) string {
+	obj := schema.Object("User", data.User{})
+	obj.FieldFunc("name", func(ctx context.Context, u *data.User) string {
 		return u.Name
 	})
-	obj.FieldFunc("runs", func(ctx context.Context, u *user) []*run {
-		var runs []*run
+	obj.FieldFunc("runs", func(ctx context.Context, u *data.User) []*data.Run {
+		var runs []*data.Run
 		for _, run := range s.runs {
 			if *run.Runner == *u {
 				runs = append(runs, run)
@@ -119,12 +103,12 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 // registerGame registers the run type.
 func (s *server) registerRuns(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
-	queryObj.FieldFunc("runs", func(ctx context.Context, args struct{ MaxDurationMs *int64 }) ([]*run, error) {
+	queryObj.FieldFunc("runs", func(ctx context.Context, args struct{ MaxDurationMs *int64 }) ([]*data.Run, error) {
 		if args.MaxDurationMs == nil {
 			return s.runs, nil
 		}
 
-		var runs []*run
+		var runs []*data.Run
 		for _, run := range s.runs {
 			if run.Time.Milliseconds() < *args.MaxDurationMs {
 				runs = append(runs, run)
@@ -133,11 +117,11 @@ func (s *server) registerRuns(schema *schemabuilder.Schema) {
 		return runs, nil
 	})
 
-	obj := schema.Object("Run", run{})
-	obj.FieldFunc("runner", func(ctx context.Context, r *run) *user {
+	obj := schema.Object("Run", data.Run{})
+	obj.FieldFunc("runner", func(ctx context.Context, r *data.Run) *data.User {
 		return r.Runner
 	})
-	obj.FieldFunc("game", func(ctx context.Context, r *run) *game {
+	obj.FieldFunc("game", func(ctx context.Context, r *data.Run) *data.Game {
 		return r.Game
 	})
 }
@@ -150,36 +134,4 @@ func (s *server) schema() *graphql.Schema {
 	s.registerUsers(builder)
 	s.registerRuns(builder)
 	return builder.MustBuild()
-}
-
-func main() {
-	// Instantiate a server, build a server, and serve the schema on port 3030.
-	games := []*game{
-		{Title: "Great game"},
-		{Title: "Unloved game"},
-	}
-	users := []*user{
-		{Name: "Fast runner"},
-		{Name: "Slow runner"},
-		{Name: "Non-runner"},
-	}
-	runs := []*run{
-		{Runner: users[0], Game: games[0], Time: 15 * time.Millisecond},
-		{Runner: users[0], Game: games[0], Time: 17 * time.Millisecond},
-		{Runner: users[1], Game: games[0], Time: 3 * time.Hour},
-	}
-	server := &server{
-		games: games,
-		users: users,
-		runs:  runs,
-	}
-
-	schema := server.schema()
-	introspection.AddIntrospectionToSchema(schema)
-
-	// Expose schema and graphiql.
-	http.Handle("/graphql", graphql.Handler(schema))
-	http.Handle("/graphql/http", graphql.HTTPHandler(schema))
-	http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
-	http.ListenAndServe(":3030", nil)
 }

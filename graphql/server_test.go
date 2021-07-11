@@ -1,4 +1,4 @@
-package main
+package graphql
 
 import (
 	"fmt"
@@ -8,13 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/speedrun-website/speedrun-rest/data"
+
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestGamesListAll is an example of a "simple" unit test in GoLang.
 func TestGamesListAll(t *testing.T) {
-	games := []*game{
+	games := []*data.Game{
 		{Title: "Game One"},
 		{Title: "Game Two"},
 	}
@@ -42,7 +44,7 @@ func TestGamesListAll(t *testing.T) {
 func TestGamesFiltering(t *testing.T) {
 	testCases := []struct {
 		desc                        string
-		games                       []*game
+		games                       []*data.Game
 		titleRegex                  string
 		expectedStringsInResponse   []string
 		unexpectedStringsInResponse []string
@@ -52,7 +54,7 @@ func TestGamesFiltering(t *testing.T) {
 		},
 		{
 			desc: "One game - match",
-			games: []*game{
+			games: []*data.Game{
 				{Title: "First"},
 			},
 			titleRegex: "irs",
@@ -62,7 +64,7 @@ func TestGamesFiltering(t *testing.T) {
 		},
 		{
 			desc: "One game - no match",
-			games: []*game{
+			games: []*data.Game{
 				{Title: "First"},
 			},
 			titleRegex: "Two",
@@ -72,7 +74,7 @@ func TestGamesFiltering(t *testing.T) {
 		},
 		{
 			desc: "Three games - two matches",
-			games: []*game{
+			games: []*data.Game{
 				{Title: "This matches first"},
 				{Title: "This will not"},
 				{Title: "This matches second"},
@@ -87,6 +89,7 @@ func TestGamesFiltering(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			server := &server{
@@ -115,9 +118,111 @@ func TestGamesFiltering(t *testing.T) {
 	}
 }
 
+func TestUsersListAll(t *testing.T) {
+	users := []*data.User{
+		{Name: "User One"},
+		{Name: "User Two"},
+	}
+	server := &server{
+		users: users,
+	}
+
+	rr := httptest.NewRecorder()
+	handler := graphql.HTTPHandler(server.schema())
+
+	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {users {name} }"}`))
+	assert.NoError(t, err)
+
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	fullBody, err := ioutil.ReadAll(rr.Result().Body)
+	assert.NoError(t, err)
+
+	assert.True(t, strings.Contains(string(fullBody), users[0].Name), "Response should contain this user")
+	assert.True(t, strings.Contains(string(fullBody), users[1].Name), "Response should contain this user")
+}
+
+func TestUsersFiltering(t *testing.T) {
+	testCases := []struct {
+		desc                        string
+		users                       []*data.User
+		nameRegex                   string
+		expectedStringsInResponse   []string
+		unexpectedStringsInResponse []string
+	}{
+		{
+			desc: "No games",
+		},
+		{
+			desc: "One user - match",
+			users: []*data.User{
+				{Name: "User"},
+			},
+			nameRegex: "User",
+			expectedStringsInResponse: []string{
+				"User",
+			},
+		},
+		{
+			desc: "One user - no match",
+			users: []*data.User{
+				{Name: "UserOne"},
+			},
+			nameRegex: "Two",
+			unexpectedStringsInResponse: []string{
+				"UserOne",
+			},
+		},
+		{
+			desc: "Three users - two matches",
+			users: []*data.User{
+				{Name: "Match1"},
+				{Name: "Match2"},
+				{Name: "Outlier"},
+			},
+			nameRegex: "Match",
+			expectedStringsInResponse: []string{
+				"Match1",
+				"Match2",
+			},
+			unexpectedStringsInResponse: []string{
+				"Outlier",
+			},
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			server := &server{
+				users: tC.users,
+			}
+			rr := httptest.NewRecorder()
+			handler := graphql.HTTPHandler(server.schema())
+
+			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {users(nameRegex: \"%s\") {name} }"}`, tC.nameRegex)))
+			assert.NoError(t, err)
+
+			handler.ServeHTTP(rr, req)
+			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+			fullBody, err := ioutil.ReadAll(rr.Result().Body)
+			assert.NoError(t, err)
+			fullBodyStr := string(fullBody)
+
+			for _, expectedString := range tC.expectedStringsInResponse {
+				assert.True(t, strings.Contains(fullBodyStr, expectedString), "%s was expected in Response: %s", expectedString, fullBodyStr)
+			}
+			for _, unexpectedString := range tC.unexpectedStringsInResponse {
+				assert.False(t, strings.Contains(fullBodyStr, unexpectedString), "%s was not expected in Response: %s", unexpectedString, fullBodyStr)
+			}
+		})
+	}
+}
+
 // BenchmarkGameFiltering is an example of a benchmark in GoLang.
 func BenchmarkGameFiltering(b *testing.B) {
-	games := []*game{
+	games := []*data.Game{
 		{Title: "Game One"},
 		{Title: "Game Two"},
 	}
