@@ -1,4 +1,4 @@
-package graphql
+package main
 
 import (
 	"net/http"
@@ -9,6 +9,7 @@ import (
 	"github.com/samsarahq/thunder/graphql/introspection"
 
 	"github.com/speedrun-website/speedrun-rest/data"
+	"github.com/speedrun-website/speedrun-rest/graphql_server"
 )
 
 func main() {
@@ -27,13 +28,13 @@ func main() {
 		{Runner: users[0], Game: games[0], Time: 17 * time.Millisecond},
 		{Runner: users[1], Game: games[0], Time: 3 * time.Hour},
 	}
-	server := &(server{
-		games: games,
-		users: users,
-		runs:  runs,
+	server := &(graphql_server.Server{
+		Games: games,
+		Users: users,
+		Runs:  runs,
 	})
 
-	schema := server.schema()
+	schema := server.Schema()
 	introspection.AddIntrospectionToSchema(schema)
 
 	// Expose schema and graphiql.

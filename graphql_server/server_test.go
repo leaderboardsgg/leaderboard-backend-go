@@ -1,4 +1,4 @@
-package graphql
+package graphql_server
 
 import (
 	"fmt"
@@ -20,12 +20,12 @@ func TestGamesListAll(t *testing.T) {
 		{Title: "Game One"},
 		{Title: "Game Two"},
 	}
-	server := &server{
-		games: games,
+	server := &Server{
+		Games: games,
 	}
 
 	rr := httptest.NewRecorder()
-	handler := graphql.HTTPHandler(server.schema())
+	handler := graphql.HTTPHandler(server.Schema())
 
 	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {games {title} }"}`))
 	assert.NoError(t, err)
@@ -92,11 +92,11 @@ func TestGamesFiltering(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server := &server{
-				games: tC.games,
+			server := &Server{
+				Games: tC.games,
 			}
 			rr := httptest.NewRecorder()
-			handler := graphql.HTTPHandler(server.schema())
+			handler := graphql.HTTPHandler(server.Schema())
 
 			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(titleRegex: \"%s\") {title} }"}`, tC.titleRegex)))
 			assert.NoError(t, err)
@@ -123,12 +123,12 @@ func TestUsersListAll(t *testing.T) {
 		{Name: "User One"},
 		{Name: "User Two"},
 	}
-	server := &server{
-		users: users,
+	server := &Server{
+		Users: users,
 	}
 
 	rr := httptest.NewRecorder()
-	handler := graphql.HTTPHandler(server.schema())
+	handler := graphql.HTTPHandler(server.Schema())
 
 	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {users {name} }"}`))
 	assert.NoError(t, err)
@@ -194,11 +194,11 @@ func TestUsersFiltering(t *testing.T) {
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			server := &server{
-				users: tC.users,
+			server := &Server{
+				Users: tC.users,
 			}
 			rr := httptest.NewRecorder()
-			handler := graphql.HTTPHandler(server.schema())
+			handler := graphql.HTTPHandler(server.Schema())
 
 			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {users(nameRegex: \"%s\") {name} }"}`, tC.nameRegex)))
 			assert.NoError(t, err)
@@ -226,12 +226,12 @@ func BenchmarkGameFiltering(b *testing.B) {
 		{Title: "Game One"},
 		{Title: "Game Two"},
 	}
-	server := &server{
-		games: games,
+	server := &Server{
+		Games: games,
 	}
 
 	rr := httptest.NewRecorder()
-	handler := graphql.HTTPHandler(server.schema())
+	handler := graphql.HTTPHandler(server.Schema())
 
 	req, _ := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {games(titleRegex: \"One") {title} }"}`))
 

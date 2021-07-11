@@ -1,3 +1,6 @@
-.PHONY: graphql
+.PHONY: app/graphql_server
 gql:
-	go build ./graphql/main.go
+	go build ./app/graphql_server/main.go
+
+gql_run:
+	go run ./app/graphql_server/main.go

@@ -1,4 +1,4 @@
-package graphql
+package graphql_server
 
 import (
 	"context"
@@ -11,15 +11,25 @@ import (
 	"github.com/samsarahq/thunder/graphql/schemabuilder"
 )
 
-// server is our graphql server.
-type server struct {
-	users []*data.User
-	games []*data.Game
-	runs  []*data.Run
+// Server is our graphql Server.
+type Server struct {
+	Users []*data.User
+	Games []*data.Game
+	Runs  []*data.Run
+}
+
+// Schema builds the graphql Schema.
+func (s *Server) Schema() *graphql.Schema {
+	builder := schemabuilder.NewSchema()
+	s.registerEchoMutation(builder)
+	s.registerGame(builder)
+	s.registerUsers(builder)
+	s.registerRuns(builder)
+	return builder.MustBuild()
 }
 
 // registerEchoMutation registers the sample echo mutation type.
-func (s *server) registerEchoMutation(schema *schemabuilder.Schema) {
+func (s *Server) registerEchoMutation(schema *schemabuilder.Schema) {
 	obj := schema.Mutation()
 	obj.FieldFunc("echo", func(args struct{ Message string }) string {
 		return args.Message
@@ -27,11 +37,11 @@ func (s *server) registerEchoMutation(schema *schemabuilder.Schema) {
 }
 
 // registerGame registers the game type.
-func (s *server) registerGame(schema *schemabuilder.Schema) {
+func (s *Server) registerGame(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
 	queryObj.FieldFunc("games", func(ctx context.Context, args struct{ TitleRegex *string }) ([]*data.Game, error) {
 		if args.TitleRegex == nil {
-			return s.games, nil
+			return s.Games, nil
 		}
 
 		re, err := regexp.Compile(*args.TitleRegex)
@@ -40,7 +50,7 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 		}
 
 		var games []*data.Game
-		for _, game := range s.games {
+		for _, game := range s.Games {
 			if re.MatchString(game.Title) {
 				games = append(games, game)
 			}
@@ -54,7 +64,7 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 	})
 	obj.FieldFunc("runs", func(ctx context.Context, g *data.Game) []*data.Run {
 		var runs []*data.Run
-		for _, run := range s.runs {
+		for _, run := range s.Runs {
 			if *run.Game == *g {
 				runs = append(runs, run)
 			}
@@ -64,11 +74,11 @@ func (s *server) registerGame(schema *schemabuilder.Schema) {
 }
 
 // registerGame registers the user type.
-func (s *server) registerUsers(schema *schemabuilder.Schema) {
+func (s *Server) registerUsers(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
 	queryObj.FieldFunc("users", func(ctx context.Context, args struct{ NameRegex *string }) ([]*data.User, error) {
 		if args.NameRegex == nil {
-			return s.users, nil
+			return s.Users, nil
 		}
 
 		re, err := regexp.Compile(*args.NameRegex)
@@ -77,7 +87,7 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 		}
 
 		var users []*data.User
-		for _, user := range s.users {
+		for _, user := range s.Users {
 			if re.MatchString(user.Name) {
 				users = append(users, user)
 			}
@@ -91,7 +101,7 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 	})
 	obj.FieldFunc("runs", func(ctx context.Context, u *data.User) []*data.Run {
 		var runs []*data.Run
-		for _, run := range s.runs {
+		for _, run := range s.Runs {
 			if *run.Runner == *u {
 				runs = append(runs, run)
 			}
@@ -101,15 +111,15 @@ func (s *server) registerUsers(schema *schemabuilder.Schema) {
 }
 
 // registerGame registers the run type.
-func (s *server) registerRuns(schema *schemabuilder.Schema) {
+func (s *Server) registerRuns(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
 	queryObj.FieldFunc("runs", func(ctx context.Context, args struct{ MaxDurationMs *int64 }) ([]*data.Run, error) {
 		if args.MaxDurationMs == nil {
-			return s.runs, nil
+			return s.Runs, nil
 		}
 
 		var runs []*data.Run
-		for _, run := range s.runs {
+		for _, run := range s.Runs {
 			if run.Time.Milliseconds() < *args.MaxDurationMs {
 				runs = append(runs, run)
 			}
@@ -124,14 +134,4 @@ func (s *server) registerRuns(schema *schemabuilder.Schema) {
 	obj.FieldFunc("game", func(ctx context.Context, r *data.Run) *data.Game {
 		return r.Game
 	})
-}
-
-// schema builds the graphql schema.
-func (s *server) schema() *graphql.Schema {
-	builder := schemabuilder.NewSchema()
-	s.registerEchoMutation(builder)
-	s.registerGame(builder)
-	s.registerUsers(builder)
-	s.registerRuns(builder)
-	return builder.MustBuild()
 }
