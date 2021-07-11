@@ -1,0 +1,5 @@
+{
+    "go.coverOnSingleTest": true,
+    "go.coverOnSingleTestFile": true,
+    "go.testFlags": ["-v", "-race"]
+}
