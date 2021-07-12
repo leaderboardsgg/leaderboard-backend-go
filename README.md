@@ -37,3 +37,9 @@ Running tests:
 
 Running benchmarks:
 - `make bench`
+
+## Contributors
+
+<a href="https://github.com/speedrun-website/leaderboard-backend/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=speedrun-website/leaderboard-backend" />
+</a>
