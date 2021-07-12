@@ -1,2 +1,10 @@
+# Git/hub management
+.github/        @Matt-Hurd
+.gitattributes  @Matt-Hurd
+.gitignore      @Matt-Hurd
+
+# This should never be modified...
+COPYING         @Matt-Hurd @taylorcgaines
+
 # By default, let's just throw everything at the backend team
-* @backend-team
+*               @speedrun-website/backend-team
