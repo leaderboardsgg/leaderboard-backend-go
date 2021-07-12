@@ -26,7 +26,7 @@ An open-source community-driven leaderboard backend for the gaming community.
 ## How to run
 To get an interactive API interface:
 - `make gql_run`
-- Go to `localhost:3030/graphiql
+- Go to `localhost:3030/graphiql`
 
 To test HTTP endpoints:
 - `make gql_run`
