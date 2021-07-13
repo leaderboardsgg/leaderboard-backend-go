@@ -1,4 +1,4 @@
-# speedrun-rest
+# leaderboard-backend
 An open-source community-driven leaderboard backend for the gaming community.
 
 ## Links

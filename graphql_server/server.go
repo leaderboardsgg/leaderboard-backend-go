@@ -4,7 +4,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/speedrun-website/speedrun-rest/data"
+	"github.com/speedrun-website/leaderboard-backend/data"
 
 	"github.com/samsarahq/go/oops"
 	"github.com/samsarahq/thunder/graphql"

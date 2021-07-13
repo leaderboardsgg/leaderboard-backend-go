@@ -8,8 +8,8 @@ import (
 	"github.com/samsarahq/thunder/graphql/graphiql"
 	"github.com/samsarahq/thunder/graphql/introspection"
 
-	"github.com/speedrun-website/speedrun-rest/data"
-	"github.com/speedrun-website/speedrun-rest/graphql_server"
+	"github.com/speedrun-website/leaderboard-backend/data"
+	"github.com/speedrun-website/leaderboard-backend/graphql_server"
 )
 
 func main() {

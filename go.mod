@@ -1,4 +1,4 @@
-module github.com/speedrun-website/speedrun-rest
+module github.com/speedrun-website/leaderboard-backend
 
 go 1.16
 
