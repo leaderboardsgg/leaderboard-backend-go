@@ -1,6 +1,6 @@
 # This is a sample GraphQL Server!
 ## How do I run it?
-`go run graphql/sample/main.go`
+`make gql_run`
 
 ## How do I see the output?
 - You can go to `localhost:3030/graphiql`.
