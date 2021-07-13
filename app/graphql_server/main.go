@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/speedrun-website/leaderboard-backend/data"
 	"github.com/speedrun-website/leaderboard-backend/graphql_server"
+	"github.com/speedrun-website/leaderboard-backend/middleware"
 )
 
 func main() {
@@ -37,9 +39,16 @@ func main() {
 	schema := server.Schema()
 	introspection.AddIntrospectionToSchema(schema)
 
+	// Setup middleware for all requests.
+	middlewares := []middleware.ChainableMiddleware{
+		middleware.NewAuthMiddleware,
+	}
+
 	// Expose schema and graphiql.
-	http.Handle("/graphql", graphql.Handler(schema))
-	http.Handle("/graphql/http", graphql.HTTPHandler(schema))
-	http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
-	http.ListenAndServe(":3030", nil)
+	http.Handle("/graphql", middleware.NewChainMiddlewareHandler(middlewares, graphql.Handler(schema)))
+	http.Handle("/graphql/http", middleware.NewChainMiddlewareHandler(middlewares, graphql.HTTPHandler(schema)))
+	http.Handle("/graphiql/", middleware.NewChainMiddlewareHandler(middlewares, http.StripPrefix("/graphiql/", graphiql.Handler())))
+	if err := http.ListenAndServe(":3030", nil); err != nil {
+		log.Fatal(err)
+	}
 }
