@@ -37,3 +37,8 @@ Running tests:
 
 Running benchmarks:
 - `make bench`
+
+## Running in a container
+- `docker build . -t graphql_server`
+- `docker run -p 3030:3030 -d graphql_server`
+- Voila! Go to `localhost:3030/graphql`
