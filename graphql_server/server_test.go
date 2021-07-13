@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/speedrun-website/speedrun-rest/data"
+	"github.com/speedrun-website/leaderboard-backend/data"
 
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/stretchr/testify/assert"
