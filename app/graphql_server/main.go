@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/samsarahq/thunder/graphql"
@@ -44,16 +46,21 @@ func main() {
 	// Setup middleware for all requests.
 	middlewares := []middleware.ChainableMiddleware{
 		middleware.NewAuthMiddleware,
-		middleware.NewRequestMetricsMiddleware,
 	}
 
+	// Define a Mux
+	router := mux.NewRouter()
+	router.Use(middleware.NewPrometheusMiddleware)
+	// Initialize Prometheus bindings
+	middleware.RegisterPrometheus()
+
 	// Expose metrics.
-	http.Handle("/metrics", middleware.NewChainMiddlewareHandler(middlewares, promhttp.Handler()))
+	router.Path("/metrics").Handler(middleware.NewChainMiddlewareHandler(middlewares, promhttp.Handler()))
 	// Expose schema and graphiql.
-	http.Handle("/graphql", middleware.NewChainMiddlewareHandler(middlewares, graphql.Handler(schema)))
-	http.Handle("/graphql/http", middleware.NewChainMiddlewareHandler(middlewares, graphql.HTTPHandler(schema)))
-	http.Handle("/graphiql/", middleware.NewChainMiddlewareHandler(middlewares, http.StripPrefix("/graphiql/", graphiql.Handler())))
-	if err := http.ListenAndServe(":3030", nil); err != nil {
+	router.Path("/graphql").Handler(middleware.NewChainMiddlewareHandler(middlewares, graphql.Handler(schema)))
+	router.Path("/graphql/http").Handler(middleware.NewChainMiddlewareHandler(middlewares, graphql.HTTPHandler(schema)))
+	router.Path("/graphiql/").Handler(middleware.NewChainMiddlewareHandler(middlewares, http.StripPrefix("/graphiql/", graphiql.Handler())))
+	if err := http.ListenAndServe(":3030", router); err != nil {
 		log.Fatal(err)
 	}
 }
