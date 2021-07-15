@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/graphql/graphiql"
 	"github.com/samsarahq/thunder/graphql/introspection"
@@ -42,8 +44,11 @@ func main() {
 	// Setup middleware for all requests.
 	middlewares := []middleware.ChainableMiddleware{
 		middleware.NewAuthMiddleware,
+		middleware.NewRequestMetricsMiddleware,
 	}
 
+	// Expose metrics.
+	http.Handle("/metrics", middleware.NewChainMiddlewareHandler(middlewares, promhttp.Handler()))
 	// Expose schema and graphiql.
 	http.Handle("/graphql", middleware.NewChainMiddlewareHandler(middlewares, graphql.Handler(schema)))
 	http.Handle("/graphql/http", middleware.NewChainMiddlewareHandler(middlewares, graphql.HTTPHandler(schema)))
