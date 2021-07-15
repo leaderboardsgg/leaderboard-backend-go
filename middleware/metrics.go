@@ -5,23 +5,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func NewResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{w, http.StatusOK}
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
 
 var totalRequests = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
@@ -50,18 +37,18 @@ func RegisterPrometheus() {
 	prometheus.Register(httpDuration)
 }
 
-// NewPrometheusMiddleware creates a middleware which produces metrics about requests.
-// Should be attached to a mux or other router.
-func NewPrometheusMiddleware(next http.Handler) http.Handler {
+// PrometheusMiddleware creates a middleware which produces metrics about requests.
+func PrometheusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		route := mux.CurrentRoute(r)
 		path, _ := route.GetPathTemplate()
 
 		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-		rw := NewResponseWriter(w)
+		rw := negroni.NewResponseWriter(w)
+
 		next.ServeHTTP(rw, r)
 
-		statusCode := rw.statusCode
+		statusCode := rw.Status()
 
 		responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
 		totalRequests.WithLabelValues(path).Inc()
