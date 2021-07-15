@@ -1,37 +1,63 @@
 package middleware
 
 import (
-	"net/http"
 	"testing"
-	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRequestMiddlewareInstalled(t *testing.T) {
-	metricsHandler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		metrics := GetRequestMetrics(r.Context())
-		// Slightly worried about this test becoming flakey if the test runs slow.
-		assert.Equal(t, metrics.Start.Format("2006.01.02 15:04:05"), time.Now().Format("2006.01.02 15:04:05"))
-	})
+var tR = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Number of get requests.",
+	},
+	[]string{"path"},
+)
 
-	req, err := http.NewRequest("method", "url", nil)
-	assert.NoError(t, err)
+var rS = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "response_status",
+		Help: "Status of HTTP response",
+	},
+	[]string{"status"},
+)
 
-	handler := NewChainMiddlewareHandler([]ChainableMiddleware{NewRequestMetricsMiddleware}, metricsHandler)
-	handler.ServeHTTP(nil, req)
-}
+var hD = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Name: "http_response_time_seconds",
+	Help: "Duration of HTTP requests.",
+}, []string{"path"})
 
-func TestRequestMiddlewareNotInstalled(t *testing.T) {
-	metricsHandler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		metrics := GetRequestMetrics(r.Context())
-		assert.Nil(t, metrics.RequestDuration)
-		assert.Equal(t, metrics.Start, time.Time{})
-	})
+func TestPrometheusRegisters(t *testing.T) {
+	assert := assert.New(t)
+	t.Log("start")
 
-	req, err := http.NewRequest("method", "url", nil)
-	assert.NoError(t, err)
+	t.Log("reggister")
 
-	handler := NewChainMiddlewareHandler(nil, metricsHandler)
-	handler.ServeHTTP(nil, req)
+	prometheus.Register(tR)
+	prometheus.Register(responseStatus)
+	prometheus.Register(httpDuration)
+
+	tR.WithLabelValues("firstLabel").Inc()
+	tR.WithLabelValues("secondLabel").Inc()
+	tR.WithLabelValues("thirdLabel").Inc()
+	tR.WithLabelValues("thirdLabel").Inc()
+
+	rS.WithLabelValues("fourthlabel").Inc()
+	rS.WithLabelValues("fifthlabel").Inc()
+	rS.WithLabelValues("sixthlabel").Inc()
+
+	hD.WithLabelValues("seventhlabel").Observe(1)
+	hD.WithLabelValues("eighthlabel").Observe(2)
+	hD.WithLabelValues("ninelabel").Observe(2)
+
+	t.Log("assert")
+
+	// tR collected three metrics
+	assert.Equal(3, testutil.CollectAndCount(tR))
+	// responseStatus collected three metrics
+	assert.Equal(3, testutil.CollectAndCount(rS))
+	// httpDuration collected three metrics
+	assert.Equal(3, testutil.CollectAndCount(hD))
 }

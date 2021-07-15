@@ -1,51 +1,71 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
-	"time"
+	"strconv"
+
+	"github.com/gorilla/mux"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var metricsInfoKey = struct{}{}
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
 
-var (
-	RequestDurationOpts = prometheus.HistogramOpts{
-		Name:    "request_duration_seconds",
-		Help:    "Time (in seconds) spent serving this request.",
-		Buckets: prometheus.DefBuckets,
-	}
+func NewResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{w, http.StatusOK}
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+var totalRequests = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Number of get requests.",
+	},
+	[]string{"path"},
 )
 
-// MetricsInfo holds all of the metrics collected for a request.
-type MetricsInfo struct {
-	RequestDuration prometheus.Histogram
-	Start           time.Time
+var responseStatus = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "response_status",
+		Help: "Status of HTTP response",
+	},
+	[]string{"status"},
+)
+
+var httpDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Name: "http_response_time_seconds",
+	Help: "Duration of HTTP requests.",
+}, []string{"path"})
+
+func RegisterPrometheus() {
+	prometheus.Register(totalRequests)
+	prometheus.Register(responseStatus)
+	prometheus.Register(httpDuration)
 }
 
-// GetMetrics retuns the metrics for this current context.
-func GetRequestMetrics(ctx context.Context) MetricsInfo {
-	metrics, ok := ctx.Value(metricsInfoKey).(*MetricsInfo)
-	if !ok || metrics == nil {
-		return MetricsInfo{
-			RequestDuration: nil,
-			Start:           time.Time{},
-		}
-	}
-	duration := time.Since(metrics.Start)
-	metrics.RequestDuration.Observe(duration.Seconds())
-	return *metrics
-}
+// NewPrometheusMiddleware creates a middleware which produces metrics about requests.
+// Should be attached to a mux or other router.
+func NewPrometheusMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
 
-// NewMetricsMiddleware creates a middleware which produces metrics about a request, and tags the context with them.
-// Metrics info can be retrieved with `GetMetrics(ctx)`.
-func NewRequestMetricsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), metricsInfoKey, &MetricsInfo{
-			RequestDuration: prometheus.NewHistogram(RequestDurationOpts),
-			Start:           time.Now(),
-		})
-		next.ServeHTTP(rw, r.WithContext(ctx))
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+		rw := NewResponseWriter(w)
+		next.ServeHTTP(rw, r)
+
+		statusCode := rw.statusCode
+
+		responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
+		totalRequests.WithLabelValues(path).Inc()
+
+		timer.ObserveDuration()
 	})
 }
