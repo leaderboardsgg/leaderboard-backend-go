@@ -43,23 +43,20 @@ func main() {
 	schema := server.Schema()
 	introspection.AddIntrospectionToSchema(schema)
 
-	// Setup middleware for all requests.
-	middlewares := []middleware.ChainableMiddleware{
-		middleware.NewAuthMiddleware,
-	}
-
 	// Define a Mux
 	router := mux.NewRouter()
-	router.Use(middleware.NewPrometheusMiddleware)
+	router.Use(middleware.PrometheusMiddleware)
+	router.Use(middleware.NewAuthMiddleware)
+	// Expose metrics.
+	router.Path("/metrics").Handler(promhttp.Handler())
+	// Expose schema and graphiql.
+	router.Path("/graphql").Handler(graphql.Handler(schema))
+	router.Path("/graphql/http").Handler(graphql.HTTPHandler(schema))
+	router.Path("/graphiql/").Handler(http.StripPrefix("/graphiql/", graphiql.Handler()))
+
 	// Initialize Prometheus bindings
 	middleware.RegisterPrometheus()
 
-	// Expose metrics.
-	router.Path("/metrics").Handler(middleware.NewChainMiddlewareHandler(middlewares, promhttp.Handler()))
-	// Expose schema and graphiql.
-	router.Path("/graphql").Handler(middleware.NewChainMiddlewareHandler(middlewares, graphql.Handler(schema)))
-	router.Path("/graphql/http").Handler(middleware.NewChainMiddlewareHandler(middlewares, graphql.HTTPHandler(schema)))
-	router.Path("/graphiql/").Handler(middleware.NewChainMiddlewareHandler(middlewares, http.StripPrefix("/graphiql/", graphiql.Handler())))
 	if err := http.ListenAndServe(":3030", router); err != nil {
 		log.Fatal(err)
 	}
