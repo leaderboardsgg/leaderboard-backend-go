@@ -74,7 +74,7 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 	go func() {
 		t.Log("Defining router and registering prometheus targets")
 		router := mux.NewRouter()
-		router.Use(NewPrometheusMiddleware)
+		router.Use(PrometheusMiddleware)
 		RegisterPrometheus()
 
 		router.Path("/metrics").Handler(promhttp.Handler())
@@ -120,15 +120,14 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 
 	t.Log("Scanning for attached metrics")
 	for _, line := range metricsArray {
-		t.Log(line)
 		if strings.Contains(line, "http_requests_total ") {
-			t.Log("Line contains http_requests_total")
+			t.Logf("Line contains http_requests_total: %s", line)
 			totalRequestsAttached = true
 		} else if strings.Contains(line, "response_status") {
-			t.Log("Line contains response_status")
+			t.Logf("Line contains response_status: %s", line)
 			responseStatusAttached = true
 		} else if strings.Contains(line, "http_response_time_seconds") {
-			t.Log("Line contains http_response_time_seconds")
+			t.Logf("Line contains http_response_time_seconds: %s", line)
 			httpDurationAttached = true
 		}
 	}
