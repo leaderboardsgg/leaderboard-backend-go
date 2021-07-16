@@ -3,10 +3,9 @@ package middleware
 import (
 	"io"
 	"net/http"
-	"runtime"
+	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gorilla/mux"
 
@@ -71,35 +70,28 @@ func TestPrometheusRegisters(t *testing.T) {
 func TestPrometheusMiddlewareAttached(t *testing.T) {
 	assert := assert.New(t)
 
-	t.Log("Launching server in go routine")
-	go func() {
-		t.Log("Defining router and registering prometheus targets")
-		router := mux.NewRouter()
-		router.Use(PrometheusMiddleware)
-		RegisterPrometheus()
+	t.Log("Defining router and registering prometheus targets")
+	router := mux.NewRouter()
+	router.Use(PrometheusMiddleware)
+	RegisterPrometheus()
 
-		router.Path("/metrics").Handler(promhttp.Handler())
+	router.Path("/metrics").Handler(promhttp.Handler())
 
-		t.Log("Launching server")
-		if err := http.ListenAndServe(":3030", router); err != nil {
-			assert.Fail("Failure! ListenAndServe: " + err.Error())
-			runtime.Goexit() // Ends the go Routine.
-		}
-	}()
-
-	t.Log("Waiting for server to launch before proceeding")
-	time.Sleep(5 * time.Second)
+	t.Log("Launching server")
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	metricsUrl := ts.URL + "/metrics"
 
 	t.Log("Access the server a few times to ensure all the metrics populate")
 	for i := 0; i < 10; i++ {
-		_, err := http.Get("http://localhost:3030/metrics")
+		_, err := http.Get(metricsUrl)
 		if err != nil {
 			t.Log(err)
 			t.FailNow()
 		}
 	}
 	t.Log("Retrieving metrics page")
-	res, err := http.Get("http://localhost:3030/metrics")
+	res, err := http.Get(metricsUrl)
 
 	if err != nil {
 		t.Log(err)
