@@ -1,3 +1,10 @@
+# Set up commands to be used on each environment.
+ifeq ($(OS),Windows_NT)
+    RMDEL := del
+else
+    RMDEL := rm
+endif
+
 .PHONY: app/graphql_server
 gql:
 	go build ./app/graphql_server/main.go
@@ -8,7 +15,7 @@ gql_run:
 # A temporary coverprofile file needs written in order to report coverage statistics.
 test:
 	go test ./... -v -race -coverprofile ./.tmpcover.out
-	del *.tmpcover.out
+	$(RMDEL) "./.tmpcover.out"
 
 # Running a benchmark multiple times allows better comparison, especially with the benchstat tool.
 bench:
