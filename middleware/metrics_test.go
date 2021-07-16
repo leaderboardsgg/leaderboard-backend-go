@@ -3,6 +3,7 @@ package middleware
 import (
 	"io"
 	"net/http"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -43,8 +44,8 @@ func TestPrometheusRegisters(t *testing.T) {
 	t.Log("Registering Prometheus Metrics")
 
 	prometheus.Register(tR)
-	prometheus.Register(responseStatus)
-	prometheus.Register(httpDuration)
+	prometheus.Register(rS)
+	prometheus.Register(hD)
 
 	tR.WithLabelValues("firstLabel").Inc()
 	tR.WithLabelValues("secondLabel").Inc()
@@ -81,8 +82,8 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 
 		t.Log("Launching server")
 		if err := http.ListenAndServe(":3030", router); err != nil {
-			t.Log("Panic! ListenAndServe: " + err.Error())
-			panic("ListenAndServe: " + err.Error())
+			assert.Fail("Failure! ListenAndServe: " + err.Error())
+			runtime.Goexit() // Ends the go Routine.
 		}
 	}()
 
