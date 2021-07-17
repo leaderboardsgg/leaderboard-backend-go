@@ -52,7 +52,7 @@ func main() {
 	// Expose schema and graphiql.
 	router.Path("/graphql").Handler(graphql.Handler(schema))
 	router.Path("/graphql/http").Handler(graphql.HTTPHandler(schema))
-	router.Path("/graphiql/").Handler(http.StripPrefix("/graphiql/", graphiql.Handler()))
+	router.PathPrefix("/graphiql/").Handler(http.StripPrefix("/graphiql/", graphiql.Handler()))
 
 	// Initialize Prometheus bindings
 	middleware.RegisterPrometheus()
