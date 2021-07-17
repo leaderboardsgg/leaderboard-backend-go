@@ -59,9 +59,6 @@ func main() {
 	router.Path("/graphql/http").Handler(graphql.HTTPHandler(schema))
 	router.PathPrefix("/graphiql/").Handler(http.StripPrefix("/graphiql/", graphiql.Handler()))
 
-	// Initialize Prometheus bindings
-	middleware.RegisterPrometheus()
-
 	// Run the server.
 	if err := http.ListenAndServe(":3030", router); err != nil {
 		log.Fatal(err)

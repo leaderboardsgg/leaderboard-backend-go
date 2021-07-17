@@ -11,75 +11,51 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/middleware/mux_adapter"
 	"github.com/urfave/negroni"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var tR = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "http_requests_total",
-		Help: "Number of get requests.",
-	},
-	[]string{"path"},
-)
-
-var rS = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "response_status",
-		Help: "Status of HTTP response",
-	},
-	[]string{"status"},
-)
-
-var hD = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	Name: "http_response_time_seconds",
-	Help: "Duration of HTTP requests.",
-}, []string{"path"})
+func clearMetrics() {
+	totalRequests.Reset()
+	responseStatus.Reset()
+	httpDuration.Reset()
+}
 
 func TestPrometheusRegisters(t *testing.T) {
 	assert := assert.New(t)
+	clearMetrics()
 
-	t.Log("Registering Prometheus Metrics")
+	totalRequests.WithLabelValues("firstLabel").Inc()
+	totalRequests.WithLabelValues("secondLabel").Inc()
+	totalRequests.WithLabelValues("thirdLabel").Inc()
+	totalRequests.WithLabelValues("thirdLabel").Inc()
 
-	err := prometheus.Register(tR)
-	assert.NoError(err)
-	err = prometheus.Register(rS)
-	assert.NoError(err)
-	err = prometheus.Register(hD)
-	assert.NoError(err)
+	responseStatus.WithLabelValues("fourthlabel").Inc()
+	responseStatus.WithLabelValues("fifthlabel").Inc()
+	responseStatus.WithLabelValues("sixthlabel").Inc()
 
-	tR.WithLabelValues("firstLabel").Inc()
-	tR.WithLabelValues("secondLabel").Inc()
-	tR.WithLabelValues("thirdLabel").Inc()
-	tR.WithLabelValues("thirdLabel").Inc()
-
-	rS.WithLabelValues("fourthlabel").Inc()
-	rS.WithLabelValues("fifthlabel").Inc()
-	rS.WithLabelValues("sixthlabel").Inc()
-
-	hD.WithLabelValues("seventhlabel").Observe(1)
-	hD.WithLabelValues("eighthlabel").Observe(2)
-	hD.WithLabelValues("ninelabel").Observe(2)
+	httpDuration.WithLabelValues("seventhlabel").Observe(1)
+	httpDuration.WithLabelValues("eighthlabel").Observe(2)
+	httpDuration.WithLabelValues("ninelabel").Observe(2)
 
 	// tR collected three metrics
-	assert.Equal(3, testutil.CollectAndCount(tR))
+	assert.Equal(3, testutil.CollectAndCount(totalRequests))
 	// responseStatus collected three metrics
-	assert.Equal(3, testutil.CollectAndCount(rS))
+	assert.Equal(3, testutil.CollectAndCount(responseStatus))
 	// httpDuration collected three metrics
-	assert.Equal(3, testutil.CollectAndCount(hD))
+	assert.Equal(3, testutil.CollectAndCount(httpDuration))
 }
 
 func TestPrometheusMiddlewareAttached(t *testing.T) {
 	assert := assert.New(t)
+	clearMetrics()
 
 	t.Log("Defining router and registering prometheus targets")
 	router := mux.NewRouter()
 	router.Use(mux_adapter.Middleware(negroni.HandlerFunc(PrometheusMiddleware)))
 	router.Path("/metrics").Handler(promhttp.Handler())
-	RegisterPrometheus()
 
 	t.Log("Launching server")
 	ts := httptest.NewServer(router)
