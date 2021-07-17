@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -102,7 +102,7 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 	}
 
 	t.Log("Reading response body")
-	body, err := io.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.FailNow()
 	}
