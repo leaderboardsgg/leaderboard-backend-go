@@ -42,9 +42,12 @@ func TestPrometheusRegisters(t *testing.T) {
 
 	t.Log("Registering Prometheus Metrics")
 
-	prometheus.Register(tR)
-	prometheus.Register(rS)
-	prometheus.Register(hD)
+	err := prometheus.Register(tR)
+	assert.NoError(err)
+	err = prometheus.Register(rS)
+	assert.NoError(err)
+	err = prometheus.Register(hD)
+	assert.NoError(err)
 
 	tR.WithLabelValues("firstLabel").Inc()
 	tR.WithLabelValues("secondLabel").Inc()
