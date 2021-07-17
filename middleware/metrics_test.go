@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/speedrun-website/leaderboard-backend/middleware/mux_adapter"
+	"github.com/urfave/negroni"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -72,10 +74,9 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 
 	t.Log("Defining router and registering prometheus targets")
 	router := mux.NewRouter()
-	router.Use(PrometheusMiddleware)
-	RegisterPrometheus()
-
+	router.Use(mux_adapter.Middleware(negroni.HandlerFunc(PrometheusMiddleware)))
 	router.Path("/metrics").Handler(promhttp.Handler())
+	RegisterPrometheus()
 
 	t.Log("Launching server")
 	ts := httptest.NewServer(router)

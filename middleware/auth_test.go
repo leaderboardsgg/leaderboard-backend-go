@@ -17,8 +17,7 @@ func TestAuthMiddlewareInstalled(t *testing.T) {
 	req, err := http.NewRequest("method", "url", nil)
 	assert.NoError(t, err)
 
-	handler := NewChainMiddlewareHandler([]ChainableMiddleware{NewAuthMiddleware}, authedHandler)
-	handler.ServeHTTP(nil, req)
+	AuthMiddleware(nil, req, authedHandler)
 }
 
 func TestAuthMiddlewareNotInstalled(t *testing.T) {
@@ -31,6 +30,5 @@ func TestAuthMiddlewareNotInstalled(t *testing.T) {
 	req, err := http.NewRequest("method", "url", nil)
 	assert.NoError(t, err)
 
-	handler := NewChainMiddlewareHandler(nil, authedHandler)
-	handler.ServeHTTP(nil, req)
+	authedHandler.ServeHTTP(nil, req)
 }

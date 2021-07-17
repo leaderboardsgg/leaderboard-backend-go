@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/data"
 	"github.com/speedrun-website/leaderboard-backend/graphql_server"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
+	"github.com/speedrun-website/leaderboard-backend/middleware/mux_adapter"
 )
 
 func main() {
@@ -43,13 +45,16 @@ func main() {
 	schema := server.Schema()
 	introspection.AddIntrospectionToSchema(schema)
 
-	// Define a Mux
+	// Set up middleware.
+	middlewares := []negroni.Handler{
+		negroni.HandlerFunc(middleware.PrometheusMiddleware),
+		negroni.HandlerFunc(middleware.AuthMiddleware),
+	}
+
+	// Define our routes.
 	router := mux.NewRouter()
-	router.Use(middleware.PrometheusMiddleware)
-	router.Use(middleware.NewAuthMiddleware)
-	// Expose metrics.
+	router.Use(mux_adapter.Middleware(middlewares...))
 	router.Path("/metrics").Handler(promhttp.Handler())
-	// Expose schema and graphiql.
 	router.Path("/graphql").Handler(graphql.Handler(schema))
 	router.Path("/graphql/http").Handler(graphql.HTTPHandler(schema))
 	router.PathPrefix("/graphiql/").Handler(http.StripPrefix("/graphiql/", graphiql.Handler()))
@@ -57,6 +62,7 @@ func main() {
 	// Initialize Prometheus bindings
 	middleware.RegisterPrometheus()
 
+	// Run the server.
 	if err := http.ListenAndServe(":3030", router); err != nil {
 		log.Fatal(err)
 	}

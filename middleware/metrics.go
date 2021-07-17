@@ -37,22 +37,22 @@ func RegisterPrometheus() {
 	prometheus.Register(httpDuration)
 }
 
-// PrometheusMiddleware creates a middleware which produces metrics about requests.
-func PrometheusMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
+// PrometheusMiddleware is a middleware which produces metrics about requests.
+func PrometheusMiddleware(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	route := mux.CurrentRoute(r)
+	path, err := route.GetPathTemplate()
+	if err != nil {
+		// TODO: Log here once we have some standard way to log.
+		path = "UNKNOWN"
+	}
 
-		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-		rw := negroni.NewResponseWriter(w)
+	timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+	defer timer.ObserveDuration()
 
-		next.ServeHTTP(rw, r)
+	nrw := negroni.NewResponseWriter(rw)
+	next(nrw, r)
+	statusCode := nrw.Status()
 
-		statusCode := rw.Status()
-
-		responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
-		totalRequests.WithLabelValues(path).Inc()
-
-		timer.ObserveDuration()
-	})
+	responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
+	totalRequests.WithLabelValues(path).Inc()
 }

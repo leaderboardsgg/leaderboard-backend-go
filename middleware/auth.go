@@ -27,15 +27,13 @@ func GetAuthedUser(ctx context.Context) AuthedUserInfo {
 	return *user
 }
 
-// NewAuthMiddleware creates a middleware which authenticates a request, and tags the context with info about the user.
+// AuthMiddleware is a middleware which authenticates a request, and tags the context with info about the user.
 // Authentication info can be retrieved with `GetAuthedUser(ctx)`.
-func NewAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		// We have not authed anyone, so record that.
-		ctx := context.WithValue(r.Context(), authedUserInfoKey, &AuthedUserInfo{
-			AuthRan:  true,
-			IsAuthed: false,
-		})
-		next.ServeHTTP(rw, r.WithContext(ctx))
+func AuthMiddleware(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	// We have not authed anyone, so record that.
+	ctx := context.WithValue(r.Context(), authedUserInfoKey, &AuthedUserInfo{
+		AuthRan:  true,
+		IsAuthed: false,
 	})
+	next.ServeHTTP(rw, r.WithContext(ctx))
 }
