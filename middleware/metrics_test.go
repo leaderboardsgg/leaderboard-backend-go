@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -44,9 +44,12 @@ func TestPrometheusRegisters(t *testing.T) {
 
 	t.Log("Registering Prometheus Metrics")
 
-	prometheus.Register(tR)
-	prometheus.Register(rS)
-	prometheus.Register(hD)
+	err := prometheus.Register(tR)
+	assert.NoError(err)
+	err = prometheus.Register(rS)
+	assert.NoError(err)
+	err = prometheus.Register(hD)
+	assert.NoError(err)
 
 	tR.WithLabelValues("firstLabel").Inc()
 	tR.WithLabelValues("secondLabel").Inc()
@@ -100,7 +103,7 @@ func TestPrometheusMiddlewareAttached(t *testing.T) {
 	}
 
 	t.Log("Reading response body")
-	body, err := io.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		t.FailNow()
 	}
