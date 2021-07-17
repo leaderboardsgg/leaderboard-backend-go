@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,9 +33,18 @@ var httpDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 }, []string{"path"})
 
 func RegisterPrometheus() {
-	prometheus.Register(totalRequests)
-	prometheus.Register(responseStatus)
-	prometheus.Register(httpDuration)
+	if err := prometheus.Register(totalRequests); err != nil {
+		// TODO: Log properly here once we have some standard way to log.
+		fmt.Printf("error registering totalRequests counter: %s", err.Error())
+	}
+	if err := prometheus.Register(responseStatus); err != nil {
+		// TODO: Log properly here once we have some standard way to log.
+		fmt.Printf("error registering responseStatus counter: %s", err.Error())
+	}
+	if err := prometheus.Register(httpDuration); err != nil {
+		// TODO: Log properly here once we have some standard way to log.
+		fmt.Printf("error registering httpDuration histogram: %s", err.Error())
+	}
 }
 
 // PrometheusMiddleware creates a middleware which produces metrics about requests.
