@@ -18,6 +18,10 @@
 							"pm.test(\"Response time is less than 200ms\", function () {\r",
 							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 							"});\r",
+							"pm.test(\"Body contains games\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Great game\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"Unloved game\");\r",
+							"});\r",
 							""
 						],
 						"type": "text/javascript"
@@ -30,7 +34,7 @@
 				"body": {
 					"mode": "graphql",
 					"graphql": {
-						"query": "{\r\n  games {\r\n    title\r\n  }\r\n}\r\n",
+						"query": "{\r\n  games {\r\n    edges {\r\n      node {\r\n        title\r\n      }\r\n    }\r\n  }\r\n}\r\n",
 						"variables": ""
 					}
 				},
@@ -73,7 +77,7 @@
 				"body": {
 					"mode": "graphql",
 					"graphql": {
-						"query": "{\r\n  games{\r\n    title\r\n    runs {\r\n      time\r\n      runner {\r\n        name\r\n      }\r\n    }\r\n  }\r\n}\r\n",
+						"query": "{\r\n  games {\r\n    edges {\r\n      node {\r\n        title\r\n        runs {\r\n          time\r\n          runner {\r\n            name\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n",
 						"variables": ""
 					}
 				},
@@ -116,7 +120,7 @@
 				"body": {
 					"mode": "graphql",
 					"graphql": {
-						"query": "{\r\n  games(titleRegex: \"Great\"){\r\n    title\r\n    runs {\r\n      time\r\n      runner {\r\n        name\r\n      }\r\n    }\r\n  }\r\n}\r\n",
+						"query": "{\r\n  games(titleRegex: \"Great\") {\r\n    edges {\r\n      node {\r\n        title\r\n        runs {\r\n          time\r\n          runner {\r\n            name\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n",
 						"variables": ""
 					}
 				},

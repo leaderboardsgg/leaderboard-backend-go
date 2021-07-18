@@ -1,6 +1,7 @@
 package graphql_server
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -27,7 +28,7 @@ func TestGamesListAll(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := graphql.HTTPHandler(server.Schema())
 
-	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {games {title} }"}`))
+	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(`{"query": "query TestQuery {games { edges { node {title} } } }"}`))
 	assert.NoError(t, err)
 
 	handler.ServeHTTP(rr, req)
@@ -98,7 +99,7 @@ func TestGamesFiltering(t *testing.T) {
 			rr := httptest.NewRecorder()
 			handler := graphql.HTTPHandler(server.Schema())
 
-			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(titleRegex: \"%s\") {title} }"}`, tC.titleRegex)))
+			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(titleRegex: \"%s\") { edges { node {title} } } }"}`, tC.titleRegex)))
 			assert.NoError(t, err)
 
 			handler.ServeHTTP(rr, req)
@@ -116,6 +117,172 @@ func TestGamesFiltering(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestGamesPaginationFirst is an example of how we can call paginated endpoints to get the first N elements.
+func TestGamesPaginationFirst(t *testing.T) {
+	testCases := []struct {
+		desc                        string
+		games                       []*data.Game
+		pageSize                    int
+		expectedStringsInResponse   []string
+		unexpectedStringsInResponse []string
+	}{
+		{
+			desc:     "No games",
+			pageSize: 1,
+		},
+		{
+			desc: "One game - one per page",
+			games: []*data.Game{
+				{Title: "First"},
+			},
+			pageSize: 1,
+			expectedStringsInResponse: []string{
+				"First",
+			},
+		},
+		{
+			desc: "One game - empty page",
+			games: []*data.Game{
+				{Title: "First"},
+			},
+			pageSize: 0,
+			unexpectedStringsInResponse: []string{
+				"First",
+			},
+		},
+		{
+			desc: "Three games - two per page",
+			games: []*data.Game{
+				{Title: "This matches first"},
+				{Title: "This matches second"},
+				{Title: "This will not"},
+			},
+			pageSize: 2,
+			expectedStringsInResponse: []string{
+				"This matches first",
+				"This matches second",
+			},
+			unexpectedStringsInResponse: []string{
+				"This will not",
+			},
+		},
+		{
+			desc: "Three games - one hundred per page",
+			games: []*data.Game{
+				{Title: "This matches first"},
+				{Title: "This matches second"},
+				{Title: "This will also!"},
+			},
+			pageSize: 100,
+			expectedStringsInResponse: []string{
+				"This matches first",
+				"This matches second",
+				"This will also!",
+			},
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			server := &Server{
+				Games: tC.games,
+			}
+			rr := httptest.NewRecorder()
+			handler := graphql.HTTPHandler(server.Schema())
+
+			req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(first: %d) { edges { node {title} } } }"}`, tC.pageSize)))
+			assert.NoError(t, err)
+
+			handler.ServeHTTP(rr, req)
+			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+			fullBody, err := ioutil.ReadAll(rr.Result().Body)
+			assert.NoError(t, err)
+			fullBodyStr := string(fullBody)
+
+			for _, expectedString := range tC.expectedStringsInResponse {
+				assert.True(t, strings.Contains(fullBodyStr, expectedString), "%s was expected in Response: %s", expectedString, fullBodyStr)
+			}
+			for _, unexpectedString := range tC.unexpectedStringsInResponse {
+				assert.False(t, strings.Contains(fullBodyStr, unexpectedString), "%s was not expected in Response: %s", unexpectedString, fullBodyStr)
+			}
+		})
+	}
+}
+
+// TestGamesPaginationCursor is an example of how we can call paginated endpoints and iterate over them with a cursor.
+func TestGamesPaginationCursor(t *testing.T) {
+	server := &Server{
+		Games: []*data.Game{
+			{Title: "Uno"},
+			{Title: "Dos"},
+			{Title: "Tres"},
+		},
+	}
+	handler := graphql.HTTPHandler(server.Schema())
+
+	var resp struct {
+		Data struct {
+			Games struct {
+				Edges []struct {
+					Node struct {
+						Title string
+					}
+				}
+				PageInfo struct {
+					HasNextPage bool
+					EndCursor   string
+				}
+			}
+		}
+	}
+
+	// Make initial read, to get "Uno" and a cursor.
+	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(first: 1, after: \"%s\") { edges { node {title} } pageInfo {hasNextPage endCursor} } }"}`, resp.Data.Games.PageInfo.EndCursor)))
+	assert.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	fullBody, err := ioutil.ReadAll(rr.Result().Body)
+	assert.NoError(t, err)
+	assert.NoError(t, json.Unmarshal(fullBody, &resp))
+	assert.Equal(t, 1, len(resp.Data.Games.Edges))
+	assert.Equal(t, "Uno", resp.Data.Games.Edges[0].Node.Title)
+	assert.True(t, resp.Data.Games.PageInfo.HasNextPage)
+
+	// Make next read, to get "Dos" and a cursor.
+	req, err = http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(first: 1, after: \"%s\") { edges { node {title} } pageInfo {hasNextPage endCursor} } }"}`, resp.Data.Games.PageInfo.EndCursor)))
+	assert.NoError(t, err)
+
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	fullBody, err = ioutil.ReadAll(rr.Result().Body)
+	assert.NoError(t, err)
+	assert.NoError(t, json.Unmarshal(fullBody, &resp))
+	assert.Equal(t, 1, len(resp.Data.Games.Edges))
+	assert.Equal(t, "Dos", resp.Data.Games.Edges[0].Node.Title)
+	assert.True(t, resp.Data.Games.PageInfo.HasNextPage)
+
+	// Make next read, to get "Tres" and no further pages.
+	req, err = http.NewRequest("POST", "/graphql", strings.NewReader(fmt.Sprintf(`{"query": "query TestQuery {games(first: 1, after: \"%s\") { edges { node {title} } pageInfo {hasNextPage endCursor} } }"}`, resp.Data.Games.PageInfo.EndCursor)))
+	assert.NoError(t, err)
+
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+
+	fullBody, err = ioutil.ReadAll(rr.Result().Body)
+	assert.NoError(t, err)
+	assert.NoError(t, json.Unmarshal(fullBody, &resp))
+	assert.Equal(t, 1, len(resp.Data.Games.Edges))
+	assert.Equal(t, "Tres", resp.Data.Games.Edges[0].Node.Title)
+	assert.False(t, resp.Data.Games.PageInfo.HasNextPage)
 }
 
 func TestUsersListAll(t *testing.T) {

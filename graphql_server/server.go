@@ -56,9 +56,10 @@ func (s *Server) registerGame(schema *schemabuilder.Schema) {
 			}
 		}
 		return games, nil
-	})
+	}, schemabuilder.Paginated)
 
 	obj := schema.Object("Game", data.Game{})
+	obj.Key("title")
 	obj.FieldFunc("title", func(ctx context.Context, g *data.Game) string {
 		return g.Title
 	})
