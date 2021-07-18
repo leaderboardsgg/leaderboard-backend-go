@@ -20,3 +20,7 @@ test:
 # Running a benchmark multiple times allows better comparison, especially with the benchstat tool.
 bench:
 	go test  -benchmem -bench=. ./... -run=^$ -v -count 5
+
+# Running our postman collection from CLI requires newman to be installed, and for `gql_run` to be running.
+integrate:
+	newman run "./postman/Sample Server.postman_collection.json"

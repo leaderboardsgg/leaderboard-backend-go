@@ -16,6 +16,8 @@ An open-source community-driven leaderboard backend for the gaming community.
 - [Go](https://golang.org/doc/install) 1.11+.
 - [Make](https://www.gnu.org/software/make/) to run build scripts.
 - [gcc](https://gcc.gnu.org/) to run race detection on unit tests.
+- [npm](https://www.npmjs.com/) to run newman.
+- [newman](https://learning.postman.com/docs/running-collections/using-newman-cli/command-line-integration-with-newman/) to run integration tests.
 
 ## Useful links
 - [VSCode](https://code.visualstudio.com/download) is a pretty good editor with helpful GoLang plugins.
