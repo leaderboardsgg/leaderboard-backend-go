@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graphql-go/graphql v0.7.9 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/lib/pq v1.10.2
 	github.com/prometheus/client_golang v1.11.0
 	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/samsarahq/go v0.0.0-20210308200756-be0e1e5b6582
