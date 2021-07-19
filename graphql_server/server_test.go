@@ -1,6 +1,7 @@
 package graphql_server
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +15,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testSqlDriver struct {
+	games []*data.Game
+}
+
+func (s *testSqlDriver) GetAllGames(ctx context.Context) ([]*data.Game, error) {
+	return s.games, nil
+}
+
+func (s *testSqlDriver) InsertGame(ctx context.Context, game *data.Game) error {
+	s.games = append(s.games, game)
+	return nil
+}
+
 // TestGamesListAll is an example of a "simple" unit test in GoLang.
 func TestGamesListAll(t *testing.T) {
 	games := []*data.Game{
@@ -21,7 +35,7 @@ func TestGamesListAll(t *testing.T) {
 		{Title: "Game Two"},
 	}
 	server := &Server{
-		Games: games,
+		SqlDriver: &testSqlDriver{games: games},
 	}
 
 	rr := httptest.NewRecorder()
@@ -93,7 +107,7 @@ func TestGamesFiltering(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			server := &Server{
-				Games: tC.games,
+				SqlDriver: &testSqlDriver{games: tC.games},
 			}
 			rr := httptest.NewRecorder()
 			handler := graphql.HTTPHandler(server.Schema())
@@ -227,7 +241,7 @@ func BenchmarkGameFiltering(b *testing.B) {
 		{Title: "Game Two"},
 	}
 	server := &Server{
-		Games: games,
+		SqlDriver: &testSqlDriver{games: games},
 	}
 
 	rr := httptest.NewRecorder()

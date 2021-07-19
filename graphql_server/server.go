@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/speedrun-website/leaderboard-backend/data"
+	"github.com/speedrun-website/leaderboard-backend/data/sql_driver"
 
 	"github.com/samsarahq/go/oops"
 	"github.com/samsarahq/thunder/graphql"
@@ -14,8 +15,9 @@ import (
 // Server is our graphql Server.
 type Server struct {
 	Users []*data.User
-	Games []*data.Game
 	Runs  []*data.Run
+
+	SqlDriver sql_driver.SqlDriver
 }
 
 // Schema builds the graphql Schema.
@@ -40,8 +42,13 @@ func (s *Server) registerEchoMutation(schema *schemabuilder.Schema) {
 func (s *Server) registerGame(schema *schemabuilder.Schema) {
 	queryObj := schema.Query()
 	queryObj.FieldFunc("games", func(ctx context.Context, args struct{ TitleRegex *string }) ([]*data.Game, error) {
+		allGames, err := s.SqlDriver.GetAllGames(ctx)
+		if err != nil {
+			return nil, oops.Wrapf(err, "getting games")
+		}
+
 		if args.TitleRegex == nil {
-			return s.Games, nil
+			return allGames, nil
 		}
 
 		re, err := regexp.Compile(*args.TitleRegex)
@@ -50,12 +57,20 @@ func (s *Server) registerGame(schema *schemabuilder.Schema) {
 		}
 
 		var games []*data.Game
-		for _, game := range s.Games {
+		for _, game := range allGames {
 			if re.MatchString(game.Title) {
 				games = append(games, game)
 			}
 		}
 		return games, nil
+	})
+
+	mutationObj := schema.Mutation()
+	mutationObj.FieldFunc("add_game", func(ctx context.Context, args struct{ Title string }) error {
+		if err := s.SqlDriver.InsertGame(ctx, &data.Game{Title: args.Title}); err != nil {
+			return oops.Wrapf(err, "inserting row")
+		}
+		return nil
 	})
 
 	obj := schema.Object("Game", data.Game{})
@@ -65,7 +80,7 @@ func (s *Server) registerGame(schema *schemabuilder.Schema) {
 	obj.FieldFunc("runs", func(ctx context.Context, g *data.Game) []*data.Run {
 		var runs []*data.Run
 		for _, run := range s.Runs {
-			if *run.Game == *g {
+			if run.Game.Title == g.Title {
 				runs = append(runs, run)
 			}
 		}

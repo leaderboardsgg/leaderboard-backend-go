@@ -15,31 +15,34 @@ import (
 	"github.com/samsarahq/thunder/graphql/introspection"
 
 	"github.com/speedrun-website/leaderboard-backend/data"
+	"github.com/speedrun-website/leaderboard-backend/data/sql_driver"
 	"github.com/speedrun-website/leaderboard-backend/graphql_server"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"github.com/speedrun-website/leaderboard-backend/middleware/mux_adapter"
 )
 
 func main() {
-	// Instantiate a server, build a server, and serve the schema on port 3030.
-	games := []*data.Game{
-		{Title: "Great game"},
-		{Title: "Unloved game"},
+	sqlDriver, err := sql_driver.New()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	// Instantiate a server, build a server, and serve the schema on port 3030.
 	users := []*data.User{
 		{Name: "Fast runner"},
 		{Name: "Slow runner"},
 		{Name: "Non-runner"},
 	}
 	runs := []*data.Run{
-		{Runner: users[0], Game: games[0], Time: 15 * time.Millisecond},
-		{Runner: users[0], Game: games[0], Time: 17 * time.Millisecond},
-		{Runner: users[1], Game: games[0], Time: 3 * time.Hour},
+		{Runner: users[0], Game: &data.Game{Title: "Zelda"}, Time: 15 * time.Millisecond},
+		{Runner: users[0], Game: &data.Game{Title: "Zelda"}, Time: 17 * time.Millisecond},
+		{Runner: users[1], Game: &data.Game{Title: "Zelda"}, Time: 3 * time.Hour},
 	}
 	server := &(graphql_server.Server{
-		Games: games,
 		Users: users,
 		Runs:  runs,
+
+		SqlDriver: sqlDriver,
 	})
 
 	schema := server.Schema()
