@@ -20,3 +20,12 @@ test:
 # Running a benchmark multiple times allows better comparison, especially with the benchstat tool.
 bench:
 	go test  -benchmem -bench=. ./... -run=^$ -v -count 5
+
+# Build testdata database.
+build_test_db:
+	cd ./sql && docker build -t "speedrun-leaderboard-postgres-test" -f ./Dockerfile .
+
+# Run database with testdata.
+run_test_db:
+	docker run -d -p 5432:5432 --name pg "speedrun-leaderboard-postgres-test"
+
