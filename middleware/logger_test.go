@@ -31,7 +31,8 @@ func TestLoggingMiddlewareWritesExpectedLogs(t *testing.T) {
 		Message   string `json:"message"`
 		Timestamp string `json:"time"`
 	}
-	json.Unmarshal([]byte(builder.String()), &log)
+	err = json.Unmarshal([]byte(builder.String()), &log)
+	assert.NoError(t, err)
 	assert.Equal(t, log.Level, "info")
 	assert.True(t, strings.Contains(log.Message, "url"))
 	assert.True(t, strings.Contains(log.Message, "method"))
