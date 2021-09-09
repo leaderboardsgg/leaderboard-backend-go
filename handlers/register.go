@@ -19,7 +19,7 @@ func RegisterHandler(c *gin.Context) {
 	if err != nil {
 		log.Println("Unable to connect to database", err)
 		c.Error(err)
-		c.AbortWithStatusJSON(500, gin.H{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
 		return

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	database "speedrun.website/db"
@@ -14,7 +15,7 @@ func UsersHandler(c *gin.Context) {
 	if err != nil {
 		log.Println("Unable to connect to database", err)
 		c.Error(err)
-		c.AbortWithStatusJSON(500, gin.H{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
 		return
@@ -25,7 +26,7 @@ func UsersHandler(c *gin.Context) {
 	var users []model.User
 	db.Model(model.User{}).Find(&users)
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"data": users,
 	})
 }

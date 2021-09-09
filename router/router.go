@@ -41,7 +41,7 @@ func InitRoutes(router *gin.Engine) {
 
 	// public routes
 	api.POST("/register", validators.RegisterValidator(), handlers.RegisterHandler)
-	api.POST("/login", authMiddleware.LoginHandler)
+	api.POST("/login", validators.LoginValidator(), authMiddleware.LoginHandler)
 	api.POST("/logout", authMiddleware.LogoutHandler)
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.PingHandler)
