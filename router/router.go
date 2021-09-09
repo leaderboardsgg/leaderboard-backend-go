@@ -4,9 +4,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	controllers "speedrun.website/controller"
 	"speedrun.website/graph"
 	"speedrun.website/graph/generated"
+	handlers "speedrun.website/handlers"
 	"speedrun.website/middleware"
 	"speedrun.website/validators"
 )
@@ -40,16 +40,16 @@ func InitRoutes(router *gin.Engine) {
 	var authMiddleware = middleware.GetGinJWTMiddleware()
 
 	// public routes
-	api.POST("/register", validators.RegisterValidator(), controllers.RegisterHandler)
+	api.POST("/register", validators.RegisterValidator(), handlers.RegisterHandler)
 	api.POST("/login", authMiddleware.LoginHandler)
 	api.POST("/logout", authMiddleware.LogoutHandler)
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
-	api.GET("/ping", controllers.PingHandler)
-	api.GET("/users", controllers.UsersHandler)
+	api.GET("/ping", handlers.PingHandler)
+	api.GET("/users", handlers.UsersHandler)
 
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())
 	{
-		api.GET("/users/me", controllers.MeHandler)
+		api.GET("/users/me", handlers.MeHandler)
 	}
 }
