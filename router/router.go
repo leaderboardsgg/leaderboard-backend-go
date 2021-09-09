@@ -8,9 +8,8 @@ import (
 	"speedrun.website/graph"
 	"speedrun.website/graph/generated"
 	"speedrun.website/middleware"
+	"speedrun.website/validators"
 )
-
-const defaultPort = ":8080"
 
 // Defining the Graphql handler
 func graphqlHandler() gin.HandlerFunc {
@@ -41,10 +40,12 @@ func InitRoutes(router *gin.Engine) {
 	var authMiddleware = middleware.GetGinJWTMiddleware()
 
 	// public routes
+	api.POST("/register", validators.RegisterValidator(), controllers.RegisterHandler)
 	api.POST("/login", authMiddleware.LoginHandler)
+	api.POST("/logout", authMiddleware.LogoutHandler)
+	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", controllers.PingHandler)
 	api.GET("/users", controllers.UsersHandler)
-	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())

@@ -48,15 +48,5 @@ func InitDb() error {
 		db.CreateTable(&model.User{})
 	}
 
-	// todo remove fake data
-	users := []model.User{
-		{Username: "CapitaineToinon", Email: "capitainetoinon@example.com"},
-		{Username: "Johndoe", Email: "Johndoe@example.com"},
-	}
-
-	for i := 0; i < len(users); i++ {
-		db.Create(&users[i])
-	}
-
 	return nil
 }

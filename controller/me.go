@@ -6,11 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	database "speedrun.website/db"
 	"speedrun.website/graph/model"
+	"speedrun.website/middleware"
 )
 
-func UsersHandler(c *gin.Context) {
+func MeHandler(c *gin.Context) {
+	user, _ := c.Get(middleware.JwtConfig.IdentityKey)
 	db, err := database.GetDatabase()
 
+	// todo error handler or middleware?
 	if err != nil {
 		log.Println("Unable to connect to database", err)
 		c.Error(err)
@@ -22,10 +25,10 @@ func UsersHandler(c *gin.Context) {
 
 	defer db.Close()
 
-	var users []model.User
-	db.Model(model.User{}).Find(&users)
+	var me model.User
+	db.Model(model.User{
+		Username: user.(*model.User).Username,
+	}).Limit(1).Find(&me)
 
-	c.JSON(200, gin.H{
-		"data": users,
-	})
+	c.JSON(200, me)
 }

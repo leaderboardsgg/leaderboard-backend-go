@@ -2,14 +2,17 @@ package middleware
 
 import (
 	"log"
+	"net/http"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	database "speedrun.website/db"
 	"speedrun.website/graph/model"
+	"speedrun.website/utils"
 )
 
-const identityKey = "id"
+const identityKey = "email"
 
 var JwtConfig = &jwt.GinJWTMiddleware{
 	Realm:       "test zone",
@@ -20,7 +23,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	PayloadFunc: func(d interface{}) jwt.MapClaims {
 		if v, ok := d.(*model.User); ok {
 			return jwt.MapClaims{
-				identityKey: v.Username,
+				identityKey: v.Email,
 			}
 		}
 		return jwt.MapClaims{}
@@ -28,7 +31,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	IdentityHandler: func(c *gin.Context) interface{} {
 		claims := jwt.ExtractClaims(c)
 		return &model.User{
-			Username: claims[identityKey].(string),
+			Email: claims[identityKey].(string),
 		}
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -36,19 +39,46 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		if err := c.ShouldBind(&loginVals); err != nil {
 			return "", jwt.ErrMissingLoginValues
 		}
-		userID := loginVals.Email
+
+		email := loginVals.Email
 		password := loginVals.Password
 
-		if (userID == "admin" && password == "admin") || (userID == "test" && password == "test") {
+		db, err := database.GetDatabase()
+
+		if err != nil {
+			log.Println("Unable to connect to database", err)
+			c.Error(err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+			})
+			return nil, err
+		}
+
+		defer db.Close()
+
+		var user model.User
+		result := db.Where(model.User{
+			Email: email,
+		}).Limit(1).Find(&user)
+
+		if result.Error != nil {
+			return nil, result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			return nil, jwt.ErrFailedAuthentication
+		}
+
+		if utils.ComparePasswords(user.Password, []byte(password)) {
 			return &model.User{
-				Username: userID,
+				Email: email,
 			}, nil
 		}
 
 		return nil, jwt.ErrFailedAuthentication
 	},
 	Authorizator: func(d interface{}, c *gin.Context) bool {
-		if v, ok := d.(*model.User); ok && v.Username == "admin" {
+		if _, ok := d.(*model.User); ok {
 			return true
 		}
 
