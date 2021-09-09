@@ -1,0 +1,18 @@
+type User{
+  username: String!
+  email: String!
+}
+
+type Login {
+  email: String!
+  password: String!
+}
+
+type Query {
+  users: [User]!
+}
+
+input UserInput {
+  username: String!
+  email: String!
+}

@@ -1,8 +1,0 @@
-{
-	"recommendations": [
-		"editorconfig.editorconfig",
-		"golang.go"
-	],
-	"unwantedRecommendations": [
-	]
-}

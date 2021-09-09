@@ -1,19 +1,21 @@
-module github.com/speedrun-website/leaderboard-backend
+module speedrun.website
 
 go 1.16
 
 require (
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gorilla/mux v1.8.0
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/graphql-go/graphql v0.7.9 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/prometheus/client_golang v1.11.0
-	github.com/rakyll/statik v0.1.7 // indirect
-	github.com/samsarahq/go v0.0.0-20210308200756-be0e1e5b6582
-	github.com/samsarahq/thunder v0.5.0
-	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/stretchr/testify v1.7.0
-	github.com/urfave/negroni v1.0.0
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	github.com/99designs/gqlgen v0.14.0
+	github.com/appleboy/gin-jwt/v2 v2.6.4
+	github.com/gin-gonic/gin v1.7.4
+	github.com/go-playground/validator/v10 v10.9.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/jinzhu/gorm v1.9.16
+	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/ugorji/go v1.2.6 // indirect
+	github.com/vektah/gqlparser/v2 v2.2.0
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/sys v0.0.0-20210908160347-a851e7ddeee0 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	google.golang.org/protobuf v1.27.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
