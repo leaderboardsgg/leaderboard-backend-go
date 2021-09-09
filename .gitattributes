@@ -1,0 +1,16 @@
+# Normalize as LF in the repository, OS native locally
+* text=auto
+
+*.go text
+*.mod text
+*.sum text
+*.md text
+*.json text
+Makefile text
+
+# OS-dependent scripts
+*.bat text eol=crlf
+*.sh text eol=lf
+
+# Binary files that should not be modified
+# Nothing yet

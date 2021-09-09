@@ -5,20 +5,18 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/gin-gonic/gin"
 	database "speedrun.website/db"
-	router "speedrun.website/router"
+	"speedrun.website/router"
 )
 
 func main() {
-	port := os.Getenv("PORT")
+	port := os.Getenv("BACKEND_PORT")
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-
-	if port == "" {
-		port = "3000"
-	}
 
 	err := database.InitDb()
 
