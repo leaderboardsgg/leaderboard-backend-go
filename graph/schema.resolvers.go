@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	database "speedrun.website/db"
+	"speedrun.website/database"
 	"speedrun.website/graph/generated"
 	"speedrun.website/graph/model"
 )

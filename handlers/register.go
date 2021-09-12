@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	database "speedrun.website/db"
+	"speedrun.website/database"
 	"speedrun.website/graph/model"
 	"speedrun.website/utils"
 )

@@ -8,7 +8,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/gin-gonic/gin"
-	database "speedrun.website/db"
+	"speedrun.website/database"
 	"speedrun.website/router"
 )
 
