@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"speedrun.website/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
 )
 
 func LoginValidator() gin.HandlerFunc {

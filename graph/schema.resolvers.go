@@ -7,9 +7,9 @@ import (
 	"context"
 	"log"
 
-	"speedrun.website/database"
-	"speedrun.website/graph/generated"
-	"speedrun.website/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/graph/generated"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
 )
 
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {

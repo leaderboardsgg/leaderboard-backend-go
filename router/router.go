@@ -4,11 +4,11 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	"speedrun.website/graph"
-	"speedrun.website/graph/generated"
-	handlers "speedrun.website/handlers"
-	"speedrun.website/middleware"
-	"speedrun.website/validators"
+	"github.com/speedrun-website/leaderboard-backend/graph"
+	"github.com/speedrun-website/leaderboard-backend/graph/generated"
+	handlers "github.com/speedrun-website/leaderboard-backend/handlers"
+	"github.com/speedrun-website/leaderboard-backend/middleware"
+	"github.com/speedrun-website/leaderboard-backend/validators"
 )
 
 // Defining the Graphql handler

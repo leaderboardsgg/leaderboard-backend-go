@@ -7,9 +7,9 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"speedrun.website/database"
-	"speedrun.website/graph/model"
-	"speedrun.website/utils"
+	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
 const identityKey = "email"

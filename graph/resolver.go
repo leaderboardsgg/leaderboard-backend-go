@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"speedrun.website/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
 )
 
 // This file will not be regenerated automatically.

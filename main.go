@@ -8,8 +8,8 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/gin-gonic/gin"
-	"speedrun.website/database"
-	"speedrun.website/router"
+	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/router"
 )
 
 func main() {

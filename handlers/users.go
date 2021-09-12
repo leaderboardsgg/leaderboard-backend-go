@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"speedrun.website/database"
-	"speedrun.website/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
 )
 
 func UsersHandler(c *gin.Context) {

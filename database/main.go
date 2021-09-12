@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
-	"speedrun.website/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/graph/model"
 )
 
 type dbConfig struct {
