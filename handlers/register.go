@@ -25,8 +25,6 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	defer db.Close()
-
 	var alreadyExist model.User
 	result := db.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
 

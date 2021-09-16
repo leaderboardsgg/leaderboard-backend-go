@@ -21,8 +21,6 @@ func UsersHandler(c *gin.Context) {
 		return
 	}
 
-	defer db.Close()
-
 	var users []model.User
 	db.Model(model.User{}).Find(&users)
 

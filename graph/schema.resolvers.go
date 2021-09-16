@@ -18,7 +18,6 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 		log.Println("Unable to connect to database", err)
 		return nil, err
 	}
-	defer db.Close()
 	db.Find(&r.users)
 	return r.users, nil
 }

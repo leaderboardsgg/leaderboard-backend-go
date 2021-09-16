@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 
 	_ "github.com/joho/godotenv/autoload"
 
@@ -18,16 +19,19 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	err := database.InitDb()
-
-	if err != nil {
-		log.Println("Unable to init database", err)
-		panic(err)
-	}
-
 	router.InitRoutes(r)
 
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		if err := http.ListenAndServe(":"+port, r); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	log.Println("Shutdown Server ...")
+	database.Close()
 }

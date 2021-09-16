@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -26,6 +27,9 @@ var config = dbConfig{
 	os.Getenv("POSTGRES_PASSWORD"),
 }
 
+var lock sync.Mutex
+var singleton *gorm.DB
+
 func getDatabaseUrl() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
@@ -33,20 +37,29 @@ func getDatabaseUrl() string {
 }
 
 func GetDatabase() (*gorm.DB, error) {
-	db, err := gorm.Open("postgres", getDatabaseUrl())
-	return db, err
-}
+	lock.Lock()
+	defer lock.Unlock()
 
-func InitDb() error {
-	db, err := GetDatabase()
+	if singleton != nil {
+		return singleton, nil
+	}
+
+	db, err := gorm.Open("postgres", getDatabaseUrl())
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !db.HasTable(&model.User{}) {
 		db.CreateTable(&model.User{})
 	}
 
-	return nil
+	singleton = db
+	return db, nil
+}
+
+func Close() {
+	if singleton != nil {
+		singleton.Close()
+	}
 }

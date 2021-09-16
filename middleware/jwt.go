@@ -54,8 +54,6 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			return nil, err
 		}
 
-		defer db.Close()
-
 		var user model.User
 		result := db.Where(model.User{
 			Email: email,

@@ -24,8 +24,6 @@ func MeHandler(c *gin.Context) {
 		return
 	}
 
-	defer db.Close()
-
 	var me model.User
 	result := db.Where(model.User{
 		Email: user.(*model.User).Email,
