@@ -5,10 +5,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type dbConfig struct {
@@ -30,11 +30,9 @@ var config = dbConfig{
 var lock sync.Mutex
 var singleton *gorm.DB
 
-func getDatabaseUrl() string {
-	return fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		config.host, config.port, config.user, config.dbname, config.password)
-}
+var dns = fmt.Sprintf(
+	"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+	config.host, config.port, config.user, config.dbname, config.password)
 
 func GetDatabase() (*gorm.DB, error) {
 	lock.Lock()
@@ -44,15 +42,13 @@ func GetDatabase() (*gorm.DB, error) {
 		return singleton, nil
 	}
 
-	db, err := gorm.Open("postgres", getDatabaseUrl())
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if !db.HasTable(&model.User{}) {
-		db.CreateTable(&model.User{})
-	}
+	db.AutoMigrate(&model.User{})
 
 	singleton = db
 	return db, nil
@@ -60,6 +56,9 @@ func GetDatabase() (*gorm.DB, error) {
 
 func Close() {
 	if singleton != nil {
-		singleton.Close()
+		if db, err := singleton.DB(); err != nil {
+			db.Close()
+			singleton = nil
+		}
 	}
 }
