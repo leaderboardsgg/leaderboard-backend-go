@@ -47,7 +47,6 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 
 		if err != nil {
 			log.Println("Unable to connect to database", err)
-			c.Error(err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),
 			})

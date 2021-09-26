@@ -12,13 +12,19 @@ import (
 
 func RegisterHandler(c *gin.Context) {
 	var registerValue model.Register
-	c.Bind(&registerValue)
+
+	if err := c.Bind(&registerValue); err != nil {
+		log.Println("Unable to bind value", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
 	db, err := database.GetDatabase()
 
 	if err != nil {
 		log.Println("Unable to connect to database", err)
-		c.Error(err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})

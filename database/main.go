@@ -48,7 +48,9 @@ func GetDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&model.User{})
+	if err := db.AutoMigrate(&model.User{}); err != nil {
+		return nil, err
+	}
 
 	singleton = db
 	return db, nil
