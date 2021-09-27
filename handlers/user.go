@@ -8,15 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/graph/model"
-	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"gorm.io/gorm"
 )
 
-func MeHandler(c *gin.Context) {
-	user, _ := c.Get(middleware.JwtConfig.IdentityKey)
+func UserHandler(c *gin.Context) {
+	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
+	// exposing the amount of users registered in the database.
+	var user model.User
+	ID := c.Param("id")
 	db, err := database.GetDatabase()
 
-	// todo error handler or middleware?
 	if err != nil {
 		log.Println("Unable to connect to database", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -25,13 +26,10 @@ func MeHandler(c *gin.Context) {
 		return
 	}
 
-	var me model.User
-	result := db.Where(model.User{
-		Email: user.(*model.User).Email,
-	}).First(&me)
+	result := db.First(&user, ID)
 
 	if result.Error != nil {
-		var code = http.StatusInternalServerError
+		code := http.StatusInternalServerError
 
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			code = http.StatusNotFound
@@ -43,5 +41,8 @@ func MeHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, me)
+	c.JSON(http.StatusOK, gin.H{
+		"ID":       user.ID,
+		"Username": user.Username,
+	})
 }

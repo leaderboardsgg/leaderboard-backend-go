@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -8,14 +9,17 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/graph/model"
 	"github.com/speedrun-website/leaderboard-backend/utils"
+	"gorm.io/gorm"
 )
 
 func RegisterHandler(c *gin.Context) {
 	var registerValue model.Register
+	var alreadyExist model.User
+	var result *gorm.DB
 
 	if err := c.Bind(&registerValue); err != nil {
 		log.Println("Unable to bind value", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
 		})
 		return
@@ -31,11 +35,19 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	var alreadyExist model.User
-	result := db.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
+	result = db.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
+
+	if result.Error != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 
 	if result.RowsAffected != 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		// warning: maybe return a 201 instead for security reason?
+		// more: https://stackoverflow.com/a/53144807/2816588
+		c.JSON(http.StatusConflict, gin.H{
 			"message": "An account with this email already exists",
 		})
 		return
@@ -43,13 +55,24 @@ func RegisterHandler(c *gin.Context) {
 
 	hash, _ := utils.HashAndSalt([]byte(registerValue.Password))
 
-	db.Create(model.User{
+	user := model.User{
 		Username: registerValue.Username,
 		Email:    registerValue.Email,
 		Password: hash,
-	})
+	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
+	result = db.Create(&user)
+
+	if result.Error != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": result.Error.Error(),
+		})
+		return
+	}
+
+	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
+	c.JSON(http.StatusCreated, gin.H{
+		"ID":       user.ID,
+		"Username": user.Username,
 	})
 }
