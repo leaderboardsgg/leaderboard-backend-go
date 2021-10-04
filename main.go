@@ -21,9 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+	r := gin.Default()
 
 	router.InitRoutes(r)
 
