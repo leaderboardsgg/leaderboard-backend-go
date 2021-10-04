@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,19 +13,9 @@ import (
 
 func MeHandler(c *gin.Context) {
 	user, _ := c.Get(middleware.JwtConfig.IdentityKey)
-	db, err := database.GetDatabase()
-
-	// todo error handler or middleware?
-	if err != nil {
-		log.Println("Unable to connect to database", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
 	var me model.User
-	result := db.Where(model.User{
+
+	result := database.DB.Where(model.User{
 		Email: user.(*model.User).Email,
 	}).First(&me)
 

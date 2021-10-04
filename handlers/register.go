@@ -12,6 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type RegisterResponse struct {
+	ID       uint
+	Username string
+}
+
 func RegisterHandler(c *gin.Context) {
 	var registerValue model.Register
 	var alreadyExist model.User
@@ -25,22 +30,11 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	db, err := database.GetDatabase()
-
-	if err != nil {
-		log.Println("Unable to connect to database", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
-	result = db.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
+	result = database.DB.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
+		log.Fatal(result.Error)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
@@ -53,7 +47,13 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	hash, _ := utils.HashAndSalt([]byte(registerValue.Password))
+	hash, err := utils.HashAndSalt([]byte(registerValue.Password))
+
+	if err != nil {
+		log.Fatal(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
 	user := model.User{
 		Username: registerValue.Username,
@@ -61,18 +61,19 @@ func RegisterHandler(c *gin.Context) {
 		Password: hash,
 	}
 
-	result = db.Create(&user)
+	result = database.DB.Create(&user)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": result.Error.Error(),
-		})
+		log.Fatal(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
 	c.JSON(http.StatusCreated, gin.H{
-		"ID":       user.ID,
-		"Username": user.Username,
+		"data": &RegisterResponse{
+			ID:       user.ID,
+			Username: user.Username,
+		},
 	})
 }

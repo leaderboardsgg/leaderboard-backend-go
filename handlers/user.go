@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,18 +19,7 @@ func UserHandler(c *gin.Context) {
 	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
 	// exposing the amount of users registered in the database.
 	var user model.User
-	ID := c.Param("id")
-	db, err := database.GetDatabase()
-
-	if err != nil {
-		log.Println("Unable to connect to database", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
-	result := db.First(&user, ID)
+	result := database.DB.First(&user, c.Param("id"))
 
 	if result.Error != nil {
 		code := http.StatusInternalServerError
