@@ -11,6 +11,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserResponse struct {
+	ID       uint
+	Username string
+}
+
 func UserHandler(c *gin.Context) {
 	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
 	// exposing the amount of users registered in the database.
@@ -42,7 +47,9 @@ func UserHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"ID":       user.ID,
-		"Username": user.Username,
+		"data": &UserResponse{
+			ID:       user.ID,
+			Username: user.Username,
+		},
 	})
 }
