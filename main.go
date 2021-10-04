@@ -15,6 +15,12 @@ import (
 
 func main() {
 	port := os.Getenv("BACKEND_PORT")
+
+	if err := database.Init(); err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -24,6 +30,7 @@ func main() {
 	go func() {
 		if err := http.ListenAndServe(":"+port, r); err != nil {
 			log.Fatal(err)
+			panic(err)
 		}
 	}()
 
@@ -33,5 +40,8 @@ func main() {
 	<-quit
 
 	log.Println("Shutdown Server ...")
-	database.Close()
+	if err := database.Close(); err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
 }

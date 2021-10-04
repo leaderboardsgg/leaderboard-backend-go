@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"sync"
@@ -35,6 +36,9 @@ var dns = fmt.Sprintf(
 	config.host, config.port, config.user, config.dbname, config.password)
 
 func GetDatabase() (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -42,13 +46,7 @@ func GetDatabase() (*gorm.DB, error) {
 		return singleton, nil
 	}
 
-	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.AutoMigrate(&model.User{}); err != nil {
+	if db, err = gorm.Open(postgres.Open(dns), &gorm.Config{}); err != nil {
 		return nil, err
 	}
 
@@ -56,11 +54,45 @@ func GetDatabase() (*gorm.DB, error) {
 	return db, nil
 }
 
-func Close() {
-	if singleton != nil {
-		if db, err := singleton.DB(); err != nil {
-			db.Close()
-			singleton = nil
-		}
+func Init() error {
+	var db *gorm.DB
+	var err error
+
+	if db, err = gorm.Open(postgres.Open(dns), &gorm.Config{}); err != nil {
+		return err
 	}
+
+	if err = db.AutoMigrate(&model.User{}); err != nil {
+		return err
+	}
+
+	if err = close(db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Close() error {
+	if singleton == nil {
+		return nil
+	}
+
+	if err := close(singleton); err != nil {
+		return err
+	}
+
+	singleton = nil
+	return nil
+}
+
+func close(db *gorm.DB) error {
+	var sqlDB *sql.DB
+	var err error
+
+	if sqlDB, err = db.DB(); err != nil {
+		return err
+	}
+
+	return sqlDB.Close()
 }
