@@ -75,11 +75,8 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		return nil, jwt.ErrFailedAuthentication
 	},
 	Authorizator: func(d interface{}, c *gin.Context) bool {
-		if _, ok := d.(*model.User); ok {
-			return true
-		}
-
-		return false
+		_, ok := d.(*model.User)
+		return ok
 	},
 	Unauthorized: func(c *gin.Context, code int, message string) {
 		c.JSON(code, gin.H{
