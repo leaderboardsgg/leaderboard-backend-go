@@ -5,7 +5,7 @@ import (
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

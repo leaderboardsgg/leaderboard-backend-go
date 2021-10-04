@@ -12,10 +12,6 @@ build:
 run:
 	go run ./main.go
 
-# generate models for graphql
-generate:
-	go get github.com/99designs/gqlgen && go run github.com/99designs/gqlgen generate
-
 # A temporary coverprofile file needs written in order to report coverage statistics.
 test:
 	go test ./... -v -race -coverprofile ./.tmpcover.out

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
 func UsersHandler(c *gin.Context) {

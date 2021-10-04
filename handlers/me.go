@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
+	"github.com/speedrun-website/leaderboard-backend/model"
 	"gorm.io/gorm"
 )
 

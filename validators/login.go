@@ -5,12 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
 func LoginValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var loginValue model.Login
+		var loginValue model.UserLogin
 		if err := c.ShouldBind(&loginValue); err == nil {
 			validate := validator.New()
 			if err := validate.Struct(&loginValue); err != nil {

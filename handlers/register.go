@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/model"
 	"github.com/speedrun-website/leaderboard-backend/utils"
 	"gorm.io/gorm"
 )
@@ -18,7 +18,7 @@ type RegisterResponse struct {
 }
 
 func RegisterHandler(c *gin.Context) {
-	var registerValue model.Register
+	var registerValue model.UserRegister
 	var alreadyExist model.User
 	var result *gorm.DB
 

@@ -40,8 +40,4 @@ func main() {
 	<-quit
 
 	log.Println("Shutdown Server ...")
-	if err := database.Close(); err != nil {
-		log.Fatal(err)
-		panic(err)
-	}
 }

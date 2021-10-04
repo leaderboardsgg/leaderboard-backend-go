@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"log"
-	"net/http"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/graph/model"
+	"github.com/speedrun-website/leaderboard-backend/model"
 	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
@@ -35,7 +34,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		}
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
-		var loginVals model.Login
+		var loginVals model.UserLogin
 		if err := c.ShouldBind(&loginVals); err != nil {
 			return "", jwt.ErrMissingLoginValues
 		}
@@ -43,18 +42,8 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		email := loginVals.Email
 		password := loginVals.Password
 
-		db, err := database.GetDatabase()
-
-		if err != nil {
-			log.Println("Unable to connect to database", err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-			})
-			return nil, err
-		}
-
 		var user model.User
-		result := db.Where(model.User{
+		result := database.DB.Where(model.User{
 			Email: email,
 		}).Limit(1).Find(&user)
 

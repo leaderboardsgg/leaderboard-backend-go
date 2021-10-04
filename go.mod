@@ -3,7 +3,6 @@ module github.com/speedrun-website/leaderboard-backend
 go 1.16
 
 require (
-	github.com/99designs/gqlgen v0.14.0
 	github.com/appleboy/gin-jwt/v2 v2.6.4
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-playground/validator/v10 v10.9.0

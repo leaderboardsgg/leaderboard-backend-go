@@ -1,39 +1,14 @@
 package router
 
 import (
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	"github.com/speedrun-website/leaderboard-backend/graph"
-	"github.com/speedrun-website/leaderboard-backend/graph/generated"
+
 	handlers "github.com/speedrun-website/leaderboard-backend/handlers"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"github.com/speedrun-website/leaderboard-backend/validators"
 )
 
-// Defining the Graphql handler
-func graphqlHandler() gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the generated.go file
-	// Resolver is in the resolver.go file
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
-// Defining the Playground handler
-func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/query")
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
 func InitRoutes(router *gin.Engine) {
-	router.GET("/playground", playgroundHandler())
-	router.POST("/query", graphqlHandler())
 	api := router.Group("/api/v1")
 
 	// the jwt middleware
