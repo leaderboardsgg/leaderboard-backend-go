@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,6 @@ type RegisterResponse struct {
 func RegisterHandler(c *gin.Context) {
 	var registerValue model.UserRegister
 	var alreadyExist model.User
-	var result *gorm.DB
 
 	if err := c.Bind(&registerValue); err != nil {
 		log.Println("Unable to bind value", err)
@@ -30,20 +30,20 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	result = database.DB.Where(model.User{Email: registerValue.Email}).Find(&alreadyExist)
+	result := database.DB.Where(model.User{Email: registerValue.Email}).First(&alreadyExist)
 
-	if result.Error != nil {
-		log.Fatal(result.Error)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if result.RowsAffected != 0 {
+	if result.Error == nil {
 		// warning: maybe return a 201 instead for security reason?
 		// more: https://stackoverflow.com/a/53144807/2816588
 		c.JSON(http.StatusConflict, gin.H{
 			"message": "An account with this email already exists",
 		})
+		return
+	}
+
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		log.Fatal(result.Error)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
