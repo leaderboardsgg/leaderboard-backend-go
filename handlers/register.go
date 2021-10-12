@@ -36,7 +36,7 @@ func RegisterHandler(c *gin.Context) {
 		// warning: maybe return a 201 instead for security reason?
 		// more: https://stackoverflow.com/a/53144807/2816588
 		c.JSON(http.StatusConflict, gin.H{
-			"message": "An account with this email already exists",
+			"errors": [1]gin.H{{"message": "An account with this email already exists"}},
 		})
 		return
 	}
