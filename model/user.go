@@ -4,9 +4,9 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	Username string `json:"username" validate:"required"`
-	Email    string `json:"email" validate:"email"`
-	Password string `json:"password" validate:"min=8,max=32,alphanum"`
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"email"`
+	Password string `json:"password" binding:"min=8,max=32,alphanum"`
 }
 
 type UserInput struct {
@@ -15,13 +15,13 @@ type UserInput struct {
 }
 
 type UserRegister struct {
-	Username        string `json:"username" validate:"required"`
-	Email           string `json:"email" validate:"required,email"`
-	Password        string `json:"password" validate:"required"`
-	PasswordConfirm string `json:"password_confirm" validate:"eqfield=Password"`
+	Username        string `json:"username" binding:"required"`
+	Email           string `json:"email" binding:"required,email"`
+	Password        string `json:"password" binding:"required"`
+	PasswordConfirm string `json:"password_confirm" binding:"eqfield=Password"`
 }
 
 type UserLogin struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }
