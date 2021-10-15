@@ -24,9 +24,6 @@ func RegisterHandler(c *gin.Context) {
 
 	if err := c.Bind(&registerValue); err != nil {
 		log.Println("Unable to bind value", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
 		return
 	}
 
