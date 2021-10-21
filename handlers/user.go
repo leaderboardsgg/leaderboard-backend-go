@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgconn"
@@ -23,19 +24,26 @@ type UserResponse struct {
 func GetUser(c *gin.Context) {
 	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
 	// exposing the amount of users registered in the database.
-	var user model.UserIdentifier
-	result := database.DB.Model(&model.User{}).First(&user, c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 0)
 
-	if result.Error != nil {
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	var user model.UserIdentifier
+	err = database.DB.Model(&model.User{}).First(&user, id).Error
+
+	if err != nil {
 		var code int
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			code = http.StatusNotFound
 		} else {
 			code = http.StatusInternalServerError
 		}
 
 		c.AbortWithStatusJSON(code, gin.H{
-			"message": result.Error.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
