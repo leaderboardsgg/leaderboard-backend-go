@@ -20,7 +20,6 @@ func InitRoutes(router *gin.Engine) {
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.PingHandler)
 	api.GET("/users/:id", handlers.UserHandler)
-	api.GET("/users", handlers.UsersHandler)
 
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())
