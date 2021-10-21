@@ -23,14 +23,15 @@ type UserResponse struct {
 func GetUser(c *gin.Context) {
 	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
 	// exposing the amount of users registered in the database.
-	var user model.User
-	result := database.DB.First(&user, c.Param("id"))
+	var user model.UserIdentifier
+	result := database.DB.Model(&model.User{}).First(&user, c.Param("id"))
 
 	if result.Error != nil {
-		code := http.StatusInternalServerError
-
+		var code int
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			code = http.StatusNotFound
+		} else {
+			code = http.StatusInternalServerError
 		}
 
 		c.AbortWithStatusJSON(code, gin.H{
@@ -40,10 +41,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": &UserResponse{
-			ID:       user.ID,
-			Username: user.Username,
-		},
+		"data": &user,
 	})
 }
 
@@ -75,6 +73,11 @@ func RegisterUser(c *gin.Context) {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			/*
+			 * TODO: we probably don't want to reveal if an email is already in use.
+			 * Maybe just give a 201 and send an email saying that someone tried to sign up as you.
+			 * --Ted W
+			 */
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
 				"errors": [1]gin.H{{"constraint": pgErr.ConstraintName, "message": pgErr.Detail}},
 			})
@@ -87,7 +90,7 @@ func RegisterUser(c *gin.Context) {
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
 	c.JSON(http.StatusCreated, gin.H{
-		"data": &UserResponse{
+		"data": &model.UserIdentifier{
 			ID:       user.ID,
 			Username: user.Username,
 		},

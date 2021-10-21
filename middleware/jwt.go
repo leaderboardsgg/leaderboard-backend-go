@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -11,7 +12,7 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
-const identityKey = "email"
+const identityKey = "id"
 
 var JwtConfig = &jwt.GinJWTMiddleware{
 	Realm:       "test zone",
@@ -20,17 +21,18 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	MaxRefresh:  time.Hour,
 	IdentityKey: identityKey,
 	PayloadFunc: func(d interface{}) jwt.MapClaims {
-		if v, ok := d.(*model.User); ok {
+		if v, ok := d.(*model.UserPersonal); ok {
 			return jwt.MapClaims{
-				identityKey: v.Email,
+				identityKey: strconv.FormatUint(uint64(v.ID), 36),
 			}
 		}
 		return jwt.MapClaims{}
 	},
 	IdentityHandler: func(c *gin.Context) interface{} {
 		claims := jwt.ExtractClaims(c)
-		return &model.User{
-			Email: claims[identityKey].(string),
+		id, _ := strconv.ParseUint(claims[identityKey].(string), 36, 0)
+		return &model.UserPersonal{
+			ID: uint(id),
 		}
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -52,16 +54,14 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		}
 
 		if utils.ComparePasswords(user.Password, []byte(password)) {
-			return &model.User{
-				Email: email,
+			return &model.UserPersonal{
+				ID:       user.ID,
+				Email:    user.Email,
+				Username: user.Username,
 			}, nil
 		}
 
 		return nil, jwt.ErrFailedAuthentication
-	},
-	Authorizator: func(d interface{}, c *gin.Context) bool {
-		_, ok := d.(*model.User)
-		return ok
 	},
 	Unauthorized: func(c *gin.Context, code int, message string) {
 		c.JSON(code, gin.H{
