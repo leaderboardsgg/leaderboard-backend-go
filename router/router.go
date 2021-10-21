@@ -14,7 +14,7 @@ func InitRoutes(router *gin.Engine) {
 	var authMiddleware = middleware.GetGinJWTMiddleware()
 
 	// public routes
-	api.POST("/register", handlers.RegisterHandler)
+	api.POST("/register", handlers.RegisterUser)
 	api.POST("/login", authMiddleware.LoginHandler)
 	api.POST("/logout", authMiddleware.LogoutHandler)
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
