@@ -47,7 +47,7 @@ func RegisterHandler(c *gin.Context) {
 	hash, err := utils.HashAndSalt([]byte(registerValue.Password))
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
