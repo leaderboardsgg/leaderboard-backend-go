@@ -35,7 +35,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
 		var loginVals model.UserLogin
-		if err := c.ShouldBind(&loginVals); err != nil {
+		if err := c.ShouldBindJSON(&loginVals); err != nil {
 			return nil, jwt.ErrMissingLoginValues
 		}
 
