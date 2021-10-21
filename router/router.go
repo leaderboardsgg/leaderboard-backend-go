@@ -27,5 +27,4 @@ func InitRoutes(router *gin.Engine) {
 	{
 		api.GET("/me", handlers.MeHandler)
 	}
-
 }
