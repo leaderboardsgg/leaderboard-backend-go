@@ -5,7 +5,6 @@ import (
 
 	handlers "github.com/speedrun-website/leaderboard-backend/handlers"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
-	"github.com/speedrun-website/leaderboard-backend/validators"
 )
 
 func InitRoutes(router *gin.Engine) {
@@ -16,7 +15,7 @@ func InitRoutes(router *gin.Engine) {
 
 	// public routes
 	api.POST("/register", handlers.RegisterHandler)
-	api.POST("/login", validators.LoginValidator(), authMiddleware.LoginHandler)
+	api.POST("/login", authMiddleware.LoginHandler)
 	api.POST("/logout", authMiddleware.LogoutHandler)
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.PingHandler)
