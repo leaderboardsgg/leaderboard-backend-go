@@ -22,7 +22,7 @@ func RegisterHandler(c *gin.Context) {
 	var registerValue model.UserRegister
 	var alreadyExist model.User
 
-	if err := c.Bind(&registerValue); err != nil {
+	if err := c.BindJSON(&registerValue); err != nil {
 		log.Println("Unable to bind value", err)
 		return
 	}
