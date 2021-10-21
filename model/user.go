@@ -9,9 +9,6 @@ type User struct {
 	Password string `json:"password" binding:"min=8,max=32,alphanum"`
 }
 
-type UserInput struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
 }
 
 type UserRegister struct {
