@@ -27,7 +27,7 @@ func MeHandler(c *gin.Context) {
 		}
 
 		c.AbortWithStatusJSON(code, gin.H{
-			"message": result.Error.Error(),
+			"errors": [1]gin.H{{"message": result.Error.Error()}},
 		})
 		return
 	}
