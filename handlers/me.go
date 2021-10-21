@@ -20,10 +20,11 @@ func MeHandler(c *gin.Context) {
 	}).First(&me)
 
 	if result.Error != nil {
-		var code = http.StatusInternalServerError
-
+		var code int
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			code = http.StatusNotFound
+		} else {
+			code = http.StatusInternalServerError
 		}
 
 		c.AbortWithStatusJSON(code, gin.H{
