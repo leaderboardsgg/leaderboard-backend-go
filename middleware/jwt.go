@@ -44,12 +44,8 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		email := loginVals.Email
 		password := loginVals.Password
 
-		var user model.User
-		result := database.DB.Where(model.User{
-			Email: email,
-		}).First(&user)
-
-		if result.Error != nil {
+		user, err := database.Users.GetUserByEmail(email)
+		if err != nil {
 			return nil, jwt.ErrFailedAuthentication
 		}
 

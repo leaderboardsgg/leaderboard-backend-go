@@ -8,13 +8,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"github.com/speedrun-website/leaderboard-backend/model"
 	"github.com/speedrun-website/leaderboard-backend/utils"
-	"gorm.io/gorm"
 )
 
 type UserResponse struct {
@@ -32,12 +29,11 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	var user model.UserIdentifier
-	err = database.DB.Model(&model.User{}).First(&user, id).Error
+	user, err := database.Users.GetUserIdentifierById(id)
 
 	if err != nil {
 		var code int
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, database.UserNotFoundError{ID: id}) {
 			code = http.StatusNotFound
 		} else {
 			code = http.StatusInternalServerError
@@ -76,19 +72,21 @@ func RegisterUser(c *gin.Context) {
 		Password: hash,
 	}
 
-	err = database.DB.WithContext(c).Create(&user).Error
+	err = database.Users.CreateUser(user)
 
 	if err != nil {
-		var pgErr *pgconn.PgError
-
-		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+		if uniquenessErr, ok := err.(database.UserUniquenessError); ok {
 			/*
 			 * TODO: we probably don't want to reveal if an email is already in use.
 			 * Maybe just give a 201 and send an email saying that someone tried to sign up as you.
 			 * --Ted W
+			 *
+			 * I still think we should do as above, but for my refactor 2021/10/22 I left
+			 * what was already here.
+			 * --RageCage
 			 */
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
-				"errors": [1]gin.H{{"constraint": pgErr.ConstraintName, "message": pgErr.Detail}},
+				"errors": [1]gin.H{{"message": uniquenessErr.Error()}},
 			})
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -107,17 +105,17 @@ func RegisterUser(c *gin.Context) {
 }
 
 func Me(c *gin.Context) {
-	rawUser, exists := c.Get(middleware.JwtConfig.IdentityKey)
-	user := rawUser.(*model.UserPersonal)
+	rawUser, ok := c.Get(middleware.JwtConfig.IdentityKey)
+	if ok {
+		user, ok := rawUser.(*model.UserPersonal)
+		if ok {
+			_, err := database.Users.GetUserPersonalById(uint64(user.ID))
 
-	if exists {
-		err := database.DB.Model(&model.User{}).First(user, user.ID).Error
-
-		if err == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"data": user,
-			})
-			return
+			if err == nil {
+				c.JSON(http.StatusOK, gin.H{
+					"data": user,
+				})
+			}
 		}
 	}
 
