@@ -24,6 +24,6 @@ func InitRoutes(router *gin.Engine) {
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())
 	{
-		api.GET("/me", handlers.MeHandler)
+		api.GET("/me", handlers.Me)
 	}
 }

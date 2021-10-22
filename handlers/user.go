@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"github.com/speedrun-website/leaderboard-backend/model"
 	"github.com/speedrun-website/leaderboard-backend/utils"
 	"gorm.io/gorm"
@@ -103,4 +104,22 @@ func RegisterUser(c *gin.Context) {
 			Username: user.Username,
 		},
 	})
+}
+
+func Me(c *gin.Context) {
+	rawUser, exists := c.Get(middleware.JwtConfig.IdentityKey)
+	user := *rawUser.(*model.UserPersonal)
+
+	if exists {
+		err := database.DB.Model(&model.User{}).First(&user, user.ID).Error
+
+		if err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"data": &user,
+			})
+			return
+		}
+	}
+
+	c.AbortWithStatus(http.StatusInternalServerError)
 }
