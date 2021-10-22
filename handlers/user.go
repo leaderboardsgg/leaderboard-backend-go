@@ -108,14 +108,14 @@ func RegisterUser(c *gin.Context) {
 
 func Me(c *gin.Context) {
 	rawUser, exists := c.Get(middleware.JwtConfig.IdentityKey)
-	user := *rawUser.(*model.UserPersonal)
+	user := rawUser.(*model.UserPersonal)
 
 	if exists {
-		err := database.DB.Model(&model.User{}).First(&user, user.ID).Error
+		err := database.DB.Model(&model.User{}).First(user, user.ID).Error
 
 		if err == nil {
 			c.JSON(http.StatusOK, gin.H{
-				"data": &user,
+				"data": user,
 			})
 			return
 		}
