@@ -5,12 +5,12 @@ else
     RMDEL := rm
 endif
 
-.PHONY: app/graphql_server
-gql:
-	go build ./app/graphql_server/main.go
+.PHONY: build
+build:
+	go build ./main.go
 
-gql_run:
-	go run ./app/graphql_server/main.go
+run:
+	go run ./main.go
 
 # A temporary coverprofile file needs written in order to report coverage statistics.
 test:

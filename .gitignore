@@ -4,6 +4,8 @@
 *.dll
 *.so
 *.dylib
+main
+__debug_bin
 
 # Test binary, built with `go test -c`
 *.test
@@ -13,3 +15,6 @@
 
 # Ignore the vendor folder
 vendor
+
+# other
+.env
