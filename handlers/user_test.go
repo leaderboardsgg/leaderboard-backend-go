@@ -149,7 +149,9 @@ func TestRegisterUser400WithImproperRequestFormat(t *testing.T) {
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
-	makeJsonBodyPostRequest(c, "{}")
+	if err := makeJsonBodyPostRequest(c, "{}"); err != nil {
+		t.FailNow()
+	}
 
 	handlers.RegisterUser(c)
 
@@ -171,7 +173,9 @@ func TestRegisterUser400IfPasswordConfirmDoesNotMatch(t *testing.T) {
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrrrrrrrrr",
 	}
-	makeJsonBodyPostRequest(c, registerBody)
+	if err := makeJsonBodyPostRequest(c, registerBody); err != nil {
+		t.FailNow()
+	}
 
 	handlers.RegisterUser(c)
 
@@ -193,7 +197,9 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrd",
 	}
-	makeJsonBodyPostRequest(c, registerBody)
+	if err := makeJsonBodyPostRequest(c, registerBody); err != nil {
+		t.FailNow()
+	}
 
 	handlers.RegisterUser(c)
 
@@ -215,7 +221,9 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrd",
 	}
-	makeJsonBodyPostRequest(c, registerBody)
+	if err := makeJsonBodyPostRequest(c, registerBody); err != nil {
+		t.FailNow()
+	}
 
 	handlers.RegisterUser(c)
 
@@ -237,7 +245,10 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrd",
 	}
-	makeJsonBodyPostRequest(c, registerBody)
+	err := makeJsonBodyPostRequest(c, registerBody)
+	if err != nil {
+		t.FailNow()
+	}
 
 	handlers.RegisterUser(c)
 
