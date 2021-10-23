@@ -19,6 +19,14 @@ type UserResponse struct {
 	Username string
 }
 
+type GetUserErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type GetUserResponse struct {
+	User *model.UserIdentifier `json:"user"`
+}
+
 func GetUser(c *gin.Context) {
 	// Maybe we shouldn't use the increment ID but generate a UUID instead to avoid
 	// exposing the amount of users registered in the database.
@@ -39,15 +47,23 @@ func GetUser(c *gin.Context) {
 			code = http.StatusInternalServerError
 		}
 
-		c.AbortWithStatusJSON(code, gin.H{
-			"message": err.Error(),
+		c.AbortWithStatusJSON(code, GetUserErrorResponse{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": &user,
+	c.JSON(http.StatusOK, GetUserResponse{
+		User: user,
 	})
+}
+
+type RegisterUserConflictResponse struct {
+	Error string `json:"error"`
+}
+
+type RegisterUserResponse struct {
+	User *model.UserIdentifier `json:"user"`
 }
 
 func RegisterUser(c *gin.Context) {
@@ -85,8 +101,8 @@ func RegisterUser(c *gin.Context) {
 			 * what was already here.
 			 * --RageCage
 			 */
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
-				"errors": [1]gin.H{{"message": uniquenessErr.Error()}},
+			c.AbortWithStatusJSON(http.StatusConflict, RegisterUserConflictResponse{
+				Error: uniquenessErr.Error(),
 			})
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)
@@ -96,12 +112,16 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
-	c.JSON(http.StatusCreated, gin.H{
-		"data": &model.UserIdentifier{
+	c.JSON(http.StatusCreated, RegisterUserResponse{
+		User: &model.UserIdentifier{
 			ID:       user.ID,
 			Username: user.Username,
 		},
 	})
+}
+
+type MeResponse struct {
+	User *model.UserPersonal `json:"user"`
 }
 
 func Me(c *gin.Context) {
@@ -112,8 +132,8 @@ func Me(c *gin.Context) {
 			userInfo, err := database.Users.GetUserPersonalById(uint64(user.ID))
 
 			if err == nil {
-				c.JSON(http.StatusOK, gin.H{
-					"data": userInfo,
+				c.JSON(http.StatusOK, MeResponse{
+					User: userInfo,
 				})
 			}
 		}
