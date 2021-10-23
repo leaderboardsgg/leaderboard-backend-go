@@ -37,7 +37,7 @@ type UserUniquenessError struct {
 }
 
 func (e UserUniquenessError) Error() string {
-	return "The user creation failed; the field " + e.ErrorField + " was not unique."
+	return "User creation failed"
 }
 
 type UserCreationError struct {
