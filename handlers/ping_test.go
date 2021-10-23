@@ -24,9 +24,7 @@ func TestPingHandlerReturnsOK(t *testing.T) {
 		)
 	}
 
-	var response struct {
-		Message string `json:"message"`
-	}
+	var response handlers.PingResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf(
