@@ -18,6 +18,8 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
+// Mock utilities
+
 type mockUserStore struct {
 	Users map[uint64]*model.User
 }
@@ -98,6 +100,8 @@ func (s mockUserStore) CreateUser(newUser model.User) error {
 	return nil
 }
 
+// Tests
+
 func TestGetUser400WithoutID(t *testing.T) {
 	setupMockUserStore()
 	w := httptest.NewRecorder()
@@ -106,7 +110,7 @@ func TestGetUser400WithoutID(t *testing.T) {
 	handlers.GetUser(c)
 
 	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Fail()
+		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
 	}
 }
 
@@ -126,7 +130,7 @@ func TestGetUser404WithNoUser(t *testing.T) {
 	handlers.GetUser(c)
 
 	if w.Result().StatusCode != http.StatusNotFound {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusNotFound, w.Result().StatusCode))
 	}
 }
 
@@ -146,7 +150,7 @@ func TestGetUser200WithNoUser(t *testing.T) {
 	handlers.GetUser(c)
 
 	if w.Result().StatusCode != http.StatusOK {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
 	}
 }
 
@@ -164,7 +168,7 @@ func TestRegisterUser400WithImproperRequestFormat(t *testing.T) {
 	handlers.RegisterUser(c)
 
 	if w.Result().StatusCode != http.StatusBadRequest {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
 	}
 }
 
@@ -188,7 +192,7 @@ func TestRegisterUser400IfPasswordConfirmDoesNotMatch(t *testing.T) {
 	handlers.RegisterUser(c)
 
 	if w.Result().StatusCode != http.StatusBadRequest {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
 	}
 }
 
@@ -212,7 +216,7 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 	handlers.RegisterUser(c)
 
 	if w.Result().StatusCode != http.StatusConflict {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
 	}
 }
 
@@ -236,7 +240,7 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 	handlers.RegisterUser(c)
 
 	if w.Result().StatusCode != http.StatusConflict {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
 	}
 }
 
@@ -261,7 +265,7 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 	handlers.RegisterUser(c)
 
 	if w.Result().StatusCode != http.StatusCreated {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusCreated, w.Result().StatusCode))
 	}
 	if !strings.Contains(w.Header().Get("Location"), "/api/v1/users") {
 		t.FailNow()
@@ -276,7 +280,7 @@ func TestMe500WhenJwtConfigFails(t *testing.T) {
 	handlers.Me(c)
 
 	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
 	}
 }
 
@@ -289,7 +293,7 @@ func TestMe500WhenRawUserDataCannotBeCasted(t *testing.T) {
 	handlers.Me(c)
 
 	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
 	}
 }
 
@@ -304,7 +308,7 @@ func TestMe500WhenUserInJWTIsNotReal(t *testing.T) {
 	handlers.Me(c)
 
 	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
 	}
 }
 
@@ -319,9 +323,11 @@ func TestMe200WhenUserInJWTIsReal(t *testing.T) {
 	handlers.Me(c)
 
 	if w.Result().StatusCode != http.StatusOK {
-		t.FailNow()
+		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
 	}
 }
+
+// Utilities
 
 func makeJsonBodyPostRequest(c *gin.Context, content interface{}) error {
 	c.Request.Method = http.MethodPost
@@ -337,4 +343,12 @@ func makeJsonBodyPostRequest(c *gin.Context, content interface{}) error {
 	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes))
 
 	return nil
+}
+
+func statusCodeMismatchMessage(expected, actual int) string {
+	return fmt.Sprintf(
+		"Expected status code %d, got %d",
+		expected,
+		actual,
+	)
 }
