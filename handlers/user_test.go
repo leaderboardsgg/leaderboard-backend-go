@@ -18,25 +18,33 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
-var Users = map[uint64]*model.User{
-	1: {
-		Username: "RageCage",
-		Email:    "rage@cage.com",
-	},
-	2: {
-		Username: "Squiddo",
-		Email:    "she@squiddo.com",
-	},
-	3: {
-		Username: "SiriusCord",
-		Email:    "sirius@cord.com",
-	},
+type mockUserStore struct {
+	Users map[uint64]*model.User
 }
 
-type mockUserStore struct{}
+func setupMockUserStore() *mockUserStore {
+	store := mockUserStore{
+		Users: map[uint64]*model.User{
+			1: {
+				Username: "RageCage",
+				Email:    "rage@cage.com",
+			},
+			2: {
+				Username: "Squiddo",
+				Email:    "she@squiddo.com",
+			},
+			3: {
+				Username: "SiriusCord",
+				Email:    "sirius@cord.com",
+			},
+		},
+	}
+	database.Users = &store
+	return &store
+}
 
 func (s mockUserStore) GetUserIdentifierById(userId uint64) (*model.UserIdentifier, error) {
-	for id, user := range Users {
+	for id, user := range s.Users {
 		if id == userId {
 			userIdentifier := model.UserIdentifier{
 				ID:       user.ID,
@@ -49,7 +57,7 @@ func (s mockUserStore) GetUserIdentifierById(userId uint64) (*model.UserIdentifi
 }
 
 func (s mockUserStore) GetUserPersonalById(userId uint64) (*model.UserPersonal, error) {
-	for id, user := range Users {
+	for id, user := range s.Users {
 		if id == userId {
 			userPersonal := model.UserPersonal{
 				ID:       user.ID,
@@ -69,7 +77,7 @@ func (s mockUserStore) GetUserByEmail(email string) (*model.User, error) {
 func (s mockUserStore) CreateUser(newUser model.User) error {
 	var maxId uint64
 	maxId = 0
-	for id, user := range Users {
+	for id, user := range s.Users {
 		if user.Email == newUser.Email {
 			return database.UserUniquenessError{
 				User:       newUser,
@@ -86,12 +94,12 @@ func (s mockUserStore) CreateUser(newUser model.User) error {
 			maxId = id
 		}
 	}
-	Users[maxId+1] = &newUser
+	s.Users[maxId+1] = &newUser
 	return nil
 }
 
 func TestGetUser400WithoutID(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
@@ -103,15 +111,15 @@ func TestGetUser400WithoutID(t *testing.T) {
 }
 
 func TestGetUser404WithNoUser(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	testUserId := 69
+	nonExistentUserId := 69
 	c.Params = []gin.Param{
 		{
 			Key:   "id",
-			Value: fmt.Sprint(testUserId),
+			Value: fmt.Sprint(nonExistentUserId),
 		},
 	}
 
@@ -123,7 +131,7 @@ func TestGetUser404WithNoUser(t *testing.T) {
 }
 
 func TestGetUser200WithNoUser(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
@@ -185,14 +193,14 @@ func TestRegisterUser400IfPasswordConfirmDoesNotMatch(t *testing.T) {
 }
 
 func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
-	database.Users = mockUserStore{}
+	store := setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = &http.Request{
 		Header: make(http.Header),
 	}
 	registerBody := model.UserRegister{
-		Username:        Users[1].Username,
+		Username:        store.Users[1].Username,
 		Email:           "doesnot@matter.com",
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrd",
@@ -209,7 +217,7 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 }
 
 func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
-	database.Users = mockUserStore{}
+	store := setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = &http.Request{
@@ -217,7 +225,7 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 	}
 	registerBody := model.UserRegister{
 		Username:        "somedude",
-		Email:           Users[1].Email,
+		Email:           store.Users[1].Email,
 		Password:        "str0ngP4sswrd",
 		PasswordConfirm: "str0ngP4sswrd",
 	}
@@ -233,7 +241,7 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 }
 
 func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = &http.Request{
@@ -261,7 +269,7 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 }
 
 func TestMe500WhenJwtConfigFails(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
@@ -273,7 +281,7 @@ func TestMe500WhenJwtConfigFails(t *testing.T) {
 }
 
 func TestMe500WhenRawUserDataCannotBeCasted(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Set(middleware.JwtConfig.IdentityKey, struct{}{})
@@ -286,7 +294,7 @@ func TestMe500WhenRawUserDataCannotBeCasted(t *testing.T) {
 }
 
 func TestMe500WhenUserInJWTIsNotReal(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Set(middleware.JwtConfig.IdentityKey, &model.UserPersonal{
@@ -301,7 +309,7 @@ func TestMe500WhenUserInJWTIsNotReal(t *testing.T) {
 }
 
 func TestMe200WhenUserInJWTIsReal(t *testing.T) {
-	database.Users = mockUserStore{}
+	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Set(middleware.JwtConfig.IdentityKey, &model.UserPersonal{

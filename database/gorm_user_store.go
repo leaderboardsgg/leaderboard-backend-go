@@ -68,7 +68,7 @@ func initGormUserStore(db *gorm.DB) error {
 		return err
 	}
 
-	Users = gormUserStore{
+	Users = &gormUserStore{
 		DB: db,
 	}
 	return nil
