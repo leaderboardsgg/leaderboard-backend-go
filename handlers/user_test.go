@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -315,7 +315,7 @@ func makeJsonBodyPostRequest(c *gin.Context, content interface{}) error {
 	test := string(reqBodyBytes)
 	fmt.Print(test)
 
-	c.Request.Body = io.NopCloser(bytes.NewBuffer(reqBodyBytes))
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes))
 
 	return nil
 }
