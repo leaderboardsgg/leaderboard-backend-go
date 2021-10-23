@@ -109,11 +109,11 @@ func Me(c *gin.Context) {
 	if ok {
 		user, ok := rawUser.(*model.UserPersonal)
 		if ok {
-			_, err := database.Users.GetUserPersonalById(uint64(user.ID))
+			userInfo, err := database.Users.GetUserPersonalById(uint64(user.ID))
 
 			if err == nil {
 				c.JSON(http.StatusOK, gin.H{
-					"data": user,
+					"data": userInfo,
 				})
 			}
 		}
