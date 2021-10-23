@@ -132,9 +132,15 @@ func TestGetUser404WithNoUser(t *testing.T) {
 	if w.Result().StatusCode != http.StatusNotFound {
 		t.Fatal(statusCodeMismatchMessage(http.StatusNotFound, w.Result().StatusCode))
 	}
+
+	var response handlers.GetUserErrorResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("GetUserErrorResponse", w.Body.String()))
+	}
 }
 
-func TestGetUser200WithNoUser(t *testing.T) {
+func TestGetUser200WithRealUser(t *testing.T) {
 	setupMockUserStore()
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -151,6 +157,12 @@ func TestGetUser200WithNoUser(t *testing.T) {
 
 	if w.Result().StatusCode != http.StatusOK {
 		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
+	}
+
+	var response handlers.GetUserResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("GetUserResponse", w.Body.String()))
 	}
 }
 
@@ -218,6 +230,12 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 	if w.Result().StatusCode != http.StatusConflict {
 		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
 	}
+
+	var response handlers.RegisterUserConflictResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("RegisterUserConflictResponse", w.Body.String()))
+	}
 }
 
 func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
@@ -241,6 +259,12 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 
 	if w.Result().StatusCode != http.StatusConflict {
 		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
+	}
+
+	var response handlers.RegisterUserConflictResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("RegisterUserConflictResponse", w.Body.String()))
 	}
 }
 
@@ -267,8 +291,15 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 	if w.Result().StatusCode != http.StatusCreated {
 		t.Fatal(statusCodeMismatchMessage(http.StatusCreated, w.Result().StatusCode))
 	}
+
 	if !strings.Contains(w.Header().Get("Location"), "/api/v1/users") {
 		t.FailNow()
+	}
+
+	var response handlers.RegisterUserResponse
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("RegisterUserResponse", w.Body.String()))
 	}
 }
 
@@ -325,6 +356,12 @@ func TestMe200WhenUserInJWTIsReal(t *testing.T) {
 	if w.Result().StatusCode != http.StatusOK {
 		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
 	}
+
+	var response handlers.MeResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(jsonParseFailureMessage("MeResponse", w.Body.String()))
+	}
 }
 
 // Utilities
@@ -350,5 +387,13 @@ func statusCodeMismatchMessage(expected, actual int) string {
 		"Expected status code %d, got %d",
 		expected,
 		actual,
+	)
+}
+
+func jsonParseFailureMessage(typeName, data string) string {
+	return fmt.Sprintf(
+		"Could not parse data into %s: %s",
+		typeName,
+		data,
 	)
 }

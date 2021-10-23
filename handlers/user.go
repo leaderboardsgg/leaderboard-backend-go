@@ -68,14 +68,12 @@ type RegisterUserResponse struct {
 
 func RegisterUser(c *gin.Context) {
 	var registerValue model.UserRegister
-
 	if err := c.BindJSON(&registerValue); err != nil {
 		log.Println("Unable to bind value", err)
 		return
 	}
 
 	hash, err := utils.HashAndSalt([]byte(registerValue.Password))
-
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
