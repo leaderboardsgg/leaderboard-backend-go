@@ -12,14 +12,14 @@ type User struct {
 }
 
 type UserIdentifier struct {
-	ID       uint
-	Username string
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
 }
 
 type UserPersonal struct {
-	ID       uint
-	Username string
-	Email    string
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type UserRegister struct {
