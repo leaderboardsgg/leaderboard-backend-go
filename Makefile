@@ -14,8 +14,11 @@ run:
 
 # A temporary coverprofile file needs written in order to report coverage statistics.
 test:
-	go test ./... -v -race -coverprofile ./.tmpcover.out
+	go test ./... -v -coverprofile ./.tmpcover.out
 	$(RMDEL) "./.tmpcover.out"
+
+test_race:
+	go test ./... -race
 
 # Running a benchmark multiple times allows better comparison, especially with the benchstat tool.
 bench:
