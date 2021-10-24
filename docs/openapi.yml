@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+  title: Speedrun.website API
+  description: This is the docs for the Speedrun.Website API version 1.
+  version: "1"
+
+servers:
+  - url: https://speedrun.website/api/v1
+
+paths:
+  /register:
+    post:
+      summary: Registers a user.
+      requestBody:
+        # TODO: Figure out how to link "UserRegister" to its definition.
+        description: A UserRegister object.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: An object with a "data" key mapped to a UserIdentifier.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    $ref: '#/components/schemas/UserRegisterResponse'
+        '409':
+          description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  constraint:
+                    type: string
+                  message:
+                    type: string
+        '500':
+          # TODO: Learn what this returns, to fill `content`.
+          description: Server error.
+  /login:
+    post:
+      summary: Logs a user in.
+      requestBody:
+        description: 'A UserLogin object. It has two required properties: `username` and `password`.'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          # TODO: Do we set a cookie here too? See: auth_jwt.go:465
+          description: User logged in successfully. A JWT that lasts for an hour will be returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    format: jwt
+        '401':
+          description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
+        '500':
+          description: Server error.
+  /logout:
+    post:
+      summary: Logs a user out.
+      responses:
+        '200':
+          # TODO: Do we set a cookie here too? See: auth_jwt.go:465
+          description: User logged in successfully. A JWT that lasts for an hour will be returned.
+  /refresh_token:
+    get:
+      summary: Refreshes the JWT for the currently logged-in user. The token still needs to be valid on refresh.
+      responses:
+        '200':
+          description: 'Token was refreshed successfully. A new token will be returned under `{"token": \"<token>\"}`.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    format: jwt
+  /ping:
+    get:
+      summary: A simple check. A de facto health check endpoint.
+      responses:
+        '200':
+          description: "The server's running. A `{\"message\": \"pong\"}` will be returned."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /users/{id}:
+    get:
+      summary: Returns a user by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+            format: uint64
+            minimum: 1
+      responses:
+        '200':
+          description: "User was found. The response will be in the form {\"user\": \"<UserIdentifier>\"}"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentifier'
+        '400':
+          description: Bad request. `id` was malformed.
+        '404':
+          description: No user with the supplied ID could be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error.
+  /me:
+    get:
+      summary: Gets the current logged-in user.
+      responses:
+        '200':
+          description: The logged-in user was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalResponse'
+        '500':
+          description: Server error.
+
+components:
+  schemas:
+    UserIdentifier:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          type: integer
+          format: uint
+        username:
+          type: string
+    UserRegisterResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/UserIdentifier'
+    UserPersonal:
+      type: object
+      required:
+        - id
+        - username
+        - email
+      properties:
+        id:
+          type: integer
+          format: uint
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+    UserPersonalResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/UserPersonal'
+    UserRegister:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - password_confirm
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        password_confirm:
+          type: string
+          format: password
+          minLength: 8
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    UserLoginResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/UserLogin'
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
