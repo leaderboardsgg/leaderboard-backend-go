@@ -14,11 +14,6 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
-type UserResponse struct {
-	ID       uint
-	Username string
-}
-
 type GetUserErrorResponse struct {
 	Error string `json:"error"`
 }
