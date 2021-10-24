@@ -1,6 +1,8 @@
 package model
 
 import (
+	"database/sql"
+
 	"gorm.io/gorm"
 )
 
@@ -8,7 +10,7 @@ type User struct {
 	gorm.Model
 	Username  string `gorm:"unique"`
 	Email     string `gorm:"unique"`
-	Password  string
+	Password  sql.NullString
 	TwitterID string `gorm:"unique"`
 }
 
