@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -74,7 +75,10 @@ func RegisterUser(c *gin.Context) {
 	user := model.User{
 		Username: registerValue.Username,
 		Email:    registerValue.Email,
-		Password: hash,
+		Password: sql.NullString{
+			String: hash,
+			Valid:  true,
+		},
 	}
 
 	err = database.Users.CreateUser(&user)
