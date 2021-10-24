@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
@@ -37,15 +41,15 @@ func OauthLogin(c *gin.Context) {
 
 func OauthCallback(c *gin.Context) {
 	log.Printf("%s oauth callback", c.Param("provider"))
-	user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+	providerUserData, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
 		return
 	}
-	var userInDB model.UserIdentifier
-	result := database.DB.Model(&model.User{}).Where("twitter_id = ?", user.UserID).First(&userInDB)
+	var maybeExistingUser model.UserIdentifier
+	result := database.DB.Model(&model.User{}).Where("twitter_id = ?", providerUserData.UserID).First(&maybeExistingUser)
 
 	if result.Error != nil {
 		//@TODO: Implement error redirects
@@ -61,5 +65,28 @@ func OauthCallback(c *gin.Context) {
 		c.Redirect(http.StatusOK, "/")
 		return
 	}
+	//@TODO: Handle failures for random username
+	newUser := model.User{
+		Username: fmt.Sprintf("Runner-%d", rand.Int()),
+		Email:    providerUserData.Email,
+	}
+
+	result = database.DB.WithContext(c).Create(&newUser)
+
+	if result.Error != nil {
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
+				"errors": [1]gin.H{{"constraint": pgErr.ConstraintName, "message": pgErr.Detail}},
+			})
+		} else {
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+
+		return
+	}
+	//@TODO: Setup JWT
+	c.Redirect(http.StatusOK, "/")
 
 }
