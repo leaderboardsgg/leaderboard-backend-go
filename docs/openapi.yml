@@ -12,8 +12,7 @@ paths:
     post:
       summary: Registers a user.
       requestBody:
-        # TODO: Figure out how to link "UserRegister" to its definition.
-        description: A UserRegister object.
+        description: A [UserRegister](#/components/schemas/UserRegister) object.
         required: true
         content:
           application/json:
@@ -42,7 +41,6 @@ paths:
                   message:
                     type: string
         '500':
-          # TODO: Learn what this returns, to fill `content`.
           description: Server error.
   /login:
     post:
@@ -75,14 +73,13 @@ paths:
       summary: Logs a user out.
       responses:
         '200':
-          # TODO: Do we set a cookie here too? See: auth_jwt.go:465
-          description: User logged in successfully. A JWT that lasts for an hour will be returned.
+          description: User logged out successfully.
   /refresh_token:
     get:
       summary: Refreshes the JWT for the currently logged-in user. The token still needs to be valid on refresh.
       responses:
         '200':
-          description: 'Token was refreshed successfully. A new token will be returned under `{"token": \"<token>\"}`.'
+          description: 'Token was refreshed successfully. A new token will be returned under `{"token": <token>}`.'
           content:
             application/json:
               schema:
