@@ -53,15 +53,7 @@ paths:
       responses:
         '200':
           # TODO: Do we set a cookie here too? See: auth_jwt.go:465
-          description: User logged in successfully. A JWT that lasts for an hour will be returned.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    format: jwt
+          $ref: '#/components/responses/UserLoginSuccessResponse'
         '401':
           description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
           $ref: '#/components/responses/UserLogin401ErrorResponse'
@@ -283,3 +275,15 @@ components:
             "code": 500,
             "message": "Internal server error"
           }
+    UserLoginSuccessResponse:
+      description: User logged in successfully. A JWT that lasts for an hour will be returned.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+                format: jwt
