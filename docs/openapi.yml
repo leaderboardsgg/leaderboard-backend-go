@@ -132,9 +132,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ErrorResponseBody'
         '500':
           description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseBody'
   /me:
     get:
       summary: Gets the current logged-in user.
@@ -225,15 +229,7 @@ components:
           format: email
         password:
           type: string
-          format: password
-    UserLoginResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          $ref: '#/components/schemas/UserLogin'
-    ErrorResponse:
+    ErrorResponseBody:
       type: object
       required:
         - message
