@@ -80,6 +80,7 @@ paths:
                   token:
                     type: string
                     format: jwt
+              example: { "token": "<example_jwt>" }
   /ping:
     get:
       summary: A simple check. A de facto health check endpoint.
@@ -93,6 +94,8 @@ paths:
                 properties:
                   message:
                     type: string
+                example:
+                  message: pong
   /users/{id}:
     get:
       summary: Returns a user by ID.
