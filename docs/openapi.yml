@@ -1,11 +1,11 @@
 openapi: 3.0.2
 info:
-  title: Speedrun.website API
-  description: This is the docs for the Speedrun.Website API version 1.
+  title: Leaderboards.gg API
+  description: This is the docs for the Leaderboards.gg API version 1.
   version: "1"
 
 servers:
-  - url: https://speedrun.website/api/v1
+  - url: https://leaderboards.gg/api/v1
 
 paths:
   /register:
