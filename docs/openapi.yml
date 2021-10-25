@@ -111,9 +111,9 @@ paths:
         '200':
           $ref: '#/components/responses/GetUserSuccessResponse'
         '400':
-          description: Bad request. `id` was malformed.
+          description: Bad request. `id` must be an integer and be larger than 0.
         '404':
-          description: No user with the supplied ID could be found.
+          description: No user with `id` could be found.
           content:
             application/json:
               schema:
