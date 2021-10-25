@@ -114,11 +114,7 @@ paths:
             minimum: 1
       responses:
         '200':
-          description: "User was found. The response will be in the form {\"user\": \"<UserIdentifier>\"}"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserIdentifier'
+          $ref: '#/components/responses/GetUserSuccessResponse'
         '400':
           description: Bad request. `id` was malformed.
         '404':
@@ -232,6 +228,17 @@ components:
         message:
           type: string
   responses:
+    GetUserSuccessResponse:
+      description: "User was found. The response will be in the form `{\"user\": <UserIdentifier>}`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserIdentifier'
     UserRegisterSuccessResponse:
       description: An object with a "data" key mapped to a [UserIdentifier](#/components/schemas/UserIdentifier).
       content:
