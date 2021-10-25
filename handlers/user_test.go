@@ -133,7 +133,7 @@ func TestGetUser404WithNoUser(t *testing.T) {
 		t.Fatal(statusCodeMismatchMessage(http.StatusNotFound, w.Result().StatusCode))
 	}
 
-	var response handlers.GetUserErrorResponse
+	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("GetUserErrorResponse", w.Body.String()))
@@ -159,7 +159,7 @@ func TestGetUser200WithRealUser(t *testing.T) {
 		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
 	}
 
-	var response handlers.GetUserResponse
+	var response handlers.UserIdentifierResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("GetUserResponse", w.Body.String()))
@@ -231,7 +231,7 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
 	}
 
-	var response handlers.RegisterUserConflictResponse
+	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("RegisterUserConflictResponse", w.Body.String()))
@@ -261,7 +261,7 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
 	}
 
-	var response handlers.RegisterUserConflictResponse
+	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("RegisterUserConflictResponse", w.Body.String()))
@@ -296,7 +296,7 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 		t.FailNow()
 	}
 
-	var response handlers.RegisterUserResponse
+	var response handlers.ErrorResponse
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("RegisterUserResponse", w.Body.String()))
@@ -357,7 +357,7 @@ func TestMe200WhenUserInJWTIsReal(t *testing.T) {
 		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
 	}
 
-	var response handlers.MeResponse
+	var response handlers.UserPersonalResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(jsonParseFailureMessage("MeResponse", w.Body.String()))

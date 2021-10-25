@@ -14,12 +14,12 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
-type GetUserErrorResponse struct {
-	Error string `json:"error"`
+type UserIdentifierResponse struct {
+	User *model.UserIdentifier `json:"user"`
 }
 
-type GetUserResponse struct {
-	User *model.UserIdentifier `json:"user"`
+type UserPersonalResponse struct {
+	User *model.UserPersonal `json:"user"`
 }
 
 func GetUser(c *gin.Context) {
@@ -42,23 +42,15 @@ func GetUser(c *gin.Context) {
 			code = http.StatusInternalServerError
 		}
 
-		c.AbortWithStatusJSON(code, GetUserErrorResponse{
+		c.AbortWithStatusJSON(code, ErrorResponse{
 			Error: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, GetUserResponse{
+	c.JSON(http.StatusOK, UserIdentifierResponse{
 		User: user,
 	})
-}
-
-type RegisterUserConflictResponse struct {
-	Error string `json:"error"`
-}
-
-type RegisterUserResponse struct {
-	User *model.UserIdentifier `json:"user"`
 }
 
 func RegisterUser(c *gin.Context) {
@@ -94,7 +86,7 @@ func RegisterUser(c *gin.Context) {
 			 * what was already here.
 			 * --RageCage
 			 */
-			c.AbortWithStatusJSON(http.StatusConflict, RegisterUserConflictResponse{
+			c.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{
 				Error: uniquenessErr.Error(),
 			})
 		} else {
@@ -105,16 +97,12 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
-	c.JSON(http.StatusCreated, RegisterUserResponse{
+	c.JSON(http.StatusCreated, UserIdentifierResponse{
 		User: &model.UserIdentifier{
 			ID:       user.ID,
 			Username: user.Username,
 		},
 	})
-}
-
-type MeResponse struct {
-	User *model.UserPersonal `json:"user"`
 }
 
 func Me(c *gin.Context) {
@@ -125,7 +113,7 @@ func Me(c *gin.Context) {
 			userInfo, err := database.Users.GetUserPersonalById(uint64(user.ID))
 
 			if err == nil {
-				c.JSON(http.StatusOK, MeResponse{
+				c.JSON(http.StatusOK, UserPersonalResponse{
 					User: userInfo,
 				})
 			}
