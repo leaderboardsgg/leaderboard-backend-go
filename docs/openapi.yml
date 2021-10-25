@@ -150,6 +150,24 @@ paths:
 
 components:
   schemas:
+    email:
+      type: string
+      format: email
+      example: johnsmithruns@leaderboards.gg
+    password:
+      type: string
+      format: password
+      minLength: 8
+      example: "password"
+    userId:
+      type: integer
+      format: uint64
+      minimum: 1
+      example: 1
+    username:
+      type: string
+      minLength: 2
+      example: "JohnSmithRuns"
     UserIdentifier:
       type: object
       required:
@@ -157,60 +175,46 @@ components:
         - username
       properties:
         id:
-          type: integer
-          format: uint
+          $ref: '#/components/schemas/userId'
         username:
-          type: string
-    UserRegisterResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          $ref: '#/components/schemas/UserIdentifier'
+          $ref: '#/components/schemas/username'
     UserPersonal:
-      type: object
-      required:
-        - id
-        - username
-        - email
-      properties:
-        id:
-          type: integer
-          format: uint
-        username:
-          type: string
-        email:
-          type: string
-          format: email
-    UserPersonalResponse:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          $ref: '#/components/schemas/UserPersonal'
-    UserRegister:
-      type: object
-      required:
-        - username
-        - email
-        - password
-        - password_confirm
-      properties:
-        username:
-          type: string
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-        password_confirm:
-          type: string
-          format: password
-          minLength: 8
+      allOf:
+        - $ref: '#/components/schemas/UserIdentifier'
+        - type: object
+          required:
+            - email
+          properties:
+            email:
+              $ref: '#/components/schemas/email'
     UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          $ref: '#/components/schemas/username'
+        password:
+          $ref: '#/components/schemas/password'
+    UserRegister:
+      allOf:
+        - type: object
+          required:
+            - email
+            - password
+            - password_confirm
+            - username
+          properties:
+            email:
+              $ref: '#/components/schemas/email'
+            password:
+              $ref: '#/components/schemas/password'
+            password_confirm:
+              $ref: '#/components/schemas/password'
+            username:
+              $ref: '#/components/schemas/username'
+    UserLoginErrorResponseBody:
       type: object
       required:
         - email
