@@ -64,8 +64,10 @@ paths:
                     format: jwt
         '401':
           description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
+          $ref: '#/components/responses/UserLogin401ErrorResponse'
         '500':
           description: Server error.
+          $ref: '#/components/responses/UserLogin500ErrorResponse'
   /logout:
     post:
       summary: Logs a user out.
@@ -213,13 +215,14 @@ components:
     UserLoginErrorResponseBody:
       type: object
       required:
-        - email
-        - password
+        - code
+        - message
       properties:
-        email:
-          type: string
-          format: email
-        password:
+        code:
+          type: number
+          minimum: 400
+          maxItems: 599
+        message:
           type: string
     ErrorResponseBody:
       type: object
@@ -246,3 +249,23 @@ components:
           schema:
             type: string
             example: /api/v1/users/1
+    UserLogin401ErrorResponse:
+      description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserLoginErrorResponseBody'
+          example: {
+            "code": 401,
+            "message": "missing Username or Password"
+          }
+    UserLogin500ErrorResponse:
+      description: Server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserLoginErrorResponseBody'
+          example: {
+            "code": 500,
+            "message": "Internal server error"
+          }
