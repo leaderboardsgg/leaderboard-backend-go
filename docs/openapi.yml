@@ -20,15 +20,7 @@ paths:
               $ref: '#/components/schemas/UserRegister'
       responses:
         '201':
-          description: An object with a "data" key mapped to a UserIdentifier.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    $ref: '#/components/schemas/UserRegisterResponse'
+          $ref: '#/components/responses/UserRegisterSuccessResponse'
         '409':
           description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
           content:
@@ -236,3 +228,21 @@ components:
       properties:
         message:
           type: string
+  responses:
+    UserRegisterSuccessResponse:
+      description: An object with a "data" key mapped to a [UserIdentifier](#/components/schemas/UserIdentifier).
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserIdentifier'
+      headers:
+        Location:
+          description: The slug to the user.
+          schema:
+            type: string
+            example: /api/v1/users/1
