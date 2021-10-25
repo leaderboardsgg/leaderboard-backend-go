@@ -36,10 +36,16 @@ paths:
               schema:
                 type: object
                 properties:
-                  constraint:
-                    type: string
-                  message:
-                    type: string
+                  errors:
+                    type: array
+                    maxItems: 1
+                    items:
+                      type: object
+                      properties:
+                        constraint:
+                          type: string
+                        message:
+                          type: string
         '500':
           description: Server error.
   /login:
