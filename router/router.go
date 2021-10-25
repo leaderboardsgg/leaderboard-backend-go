@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	handlers "github.com/speedrun-website/leaderboard-backend/handlers"
@@ -8,6 +9,7 @@ import (
 )
 
 func InitRoutes(router *gin.Engine) {
+	router.Use(cors.Default())
 	api := router.Group("/api/v1")
 
 	// the jwt middleware
