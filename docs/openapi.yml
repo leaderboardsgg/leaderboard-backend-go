@@ -131,14 +131,10 @@ paths:
                 $ref: '#/components/schemas/ErrorResponseBody'
   /me:
     get:
-      summary: Gets the current logged-in user.
+      summary: Gets the currently logged-in user.
       responses:
         '200':
-          description: The logged-in user was found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPersonalResponse'
+          $ref: '#/components/responses/UserPersonalSuccessResponse'
         '500':
           description: Server error.
 
@@ -256,6 +252,17 @@ components:
           schema:
             type: string
             example: /api/v1/users/1
+    UserPersonalSuccessResponse:
+      description: The user was found.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserPersonal'
     UserLogin401ErrorResponse:
       description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
       content:
