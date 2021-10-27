@@ -32,7 +32,6 @@ func (e UserNotFoundError) Error() string {
 }
 
 type UserUniquenessError struct {
-	User       model.User
 	ErrorField string
 }
 
@@ -41,8 +40,7 @@ func (e UserUniquenessError) Error() string {
 }
 
 type UserCreationError struct {
-	User model.User
-	Err  error
+	Err error
 }
 
 func (e UserCreationError) Error() string {

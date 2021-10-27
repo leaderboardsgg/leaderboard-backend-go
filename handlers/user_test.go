@@ -82,13 +82,11 @@ func (s mockUserStore) CreateUser(newUser model.User) error {
 	for id, user := range s.Users {
 		if user.Email == newUser.Email {
 			return database.UserUniquenessError{
-				User:       newUser,
 				ErrorField: "email",
 			}
 		}
 		if user.Username == newUser.Username {
 			return database.UserUniquenessError{
-				User:       newUser,
 				ErrorField: "username",
 			}
 		}
