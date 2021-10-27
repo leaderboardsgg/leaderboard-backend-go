@@ -20,9 +20,9 @@ paths:
               $ref: '#/components/schemas/UserRegister'
       responses:
         '201':
-          $ref: '#/components/responses/UserRegisterSuccessResponse'
+          $ref: '#/components/responses/UserRegister201'
         '409':
-          $ref: '#/components/responses/UserRegister409Response'
+          $ref: '#/components/responses/UserRegister409'
         '500':
           description: Server error.
   /login:
@@ -37,11 +37,11 @@ paths:
               $ref: '#/components/schemas/UserLogin'
       responses:
         '200':
-          $ref: '#/components/responses/UserLoginSuccessResponse'
+          $ref: '#/components/responses/UserLogin200'
         '401':
-          $ref: '#/components/responses/UserLogin401ErrorResponse'
+          $ref: '#/components/responses/UserLogin401'
         '500':
-          $ref: '#/components/responses/UserLogin500ErrorResponse'
+          $ref: '#/components/responses/UserLogin500'
   /logout:
     post:
       summary: Logs a user out.
@@ -53,13 +53,13 @@ paths:
       summary: Refreshes the JWT for the currently logged-in user. The token still needs to be valid on refresh.
       responses:
         '200':
-          $ref: '#/components/responses/RefreshToken200Response'
+          $ref: '#/components/responses/RefreshToken200'
   /ping:
     get:
       summary: A simple check. A de facto health check endpoint.
       responses:
         '200':
-          $ref: '#/components/responses/Ping200Response'
+          $ref: '#/components/responses/Ping200'
   /users/{id}:
     get:
       summary: Returns a user by ID.
@@ -73,19 +73,19 @@ paths:
             minimum: 1
       responses:
         '200':
-          $ref: '#/components/responses/GetUserSuccessResponse'
+          $ref: '#/components/responses/GetUser200'
         '400':
           description: Bad request. `id` must be an integer and be larger than 0.
         '404':
-          $ref: '#/components/responses/GetUser404Response'
+          $ref: '#/components/responses/GetUser404'
         '500':
-          $ref: '#/components/responses/GetUser500Response'
+          $ref: '#/components/responses/GetUser500'
   /me:
     get:
       summary: Gets the currently logged-in user.
       responses:
         '200':
-          $ref: '#/components/responses/UserPersonalSuccessResponse'
+          $ref: '#/components/responses/UserPersonal200'
         '500':
           description: Server error.
 
@@ -175,7 +175,7 @@ components:
         message:
           type: string
   responses:
-    GetUserSuccessResponse:
+    GetUser200:
       description: "User was found. The response will be in the form `{\"user\": <UserIdentifier>}`."
       content:
         application/json:
@@ -186,19 +186,19 @@ components:
             properties:
               data:
                 $ref: '#/components/schemas/UserIdentifier'
-    GetUser404Response:
+    GetUser404:
       description: No user with `id` could be found.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponseBody'
-    GetUser500Response:
+    GetUser500:
       description: Server error.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponseBody'
-    UserRegisterSuccessResponse:
+    UserRegister201:
       description: An object with a "data" key mapped to a [UserIdentifier](#/components/schemas/UserIdentifier).
       content:
         application/json:
@@ -215,7 +215,7 @@ components:
           schema:
             type: string
             example: /api/v1/users/1
-    UserRegister409Response:
+    UserRegister409:
       description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
       content:
         application/json:
@@ -232,7 +232,7 @@ components:
                       type: string
                     message:
                       type: string
-    UserPersonalSuccessResponse:
+    UserPersonal200:
       description: The user was found.
       content:
         application/json:
@@ -243,7 +243,7 @@ components:
             properties:
               data:
                 $ref: '#/components/schemas/UserPersonal'
-    UserLogin401ErrorResponse:
+    UserLogin401:
       description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
       content:
         application/json:
@@ -253,7 +253,7 @@ components:
             "code": 401,
             "message": "missing Username or Password"
           }
-    UserLogin500ErrorResponse:
+    UserLogin500:
       description: Server error.
       content:
         application/json:
@@ -263,7 +263,7 @@ components:
             "code": 500,
             "message": "Internal server error"
           }
-    UserLoginSuccessResponse:
+    UserLogin200:
       description: User logged in successfully. A JWT that lasts for an hour will be returned.
       content:
         application/json:
@@ -275,7 +275,7 @@ components:
               token:
                 type: string
                 format: jwt
-    RefreshToken200Response:
+    RefreshToken200:
       description: 'Token was refreshed successfully. A new token will be returned under `{"token": <token>}`.'
       content:
         application/json:
@@ -286,7 +286,7 @@ components:
                 type: string
                 format: jwt
           example: { "token": "<example_jwt>" }
-    Ping200Response:
+    Ping200:
       description: "The server's running. A `{\"message\": \"pong\"}` will be returned."
       content:
         application/json:
