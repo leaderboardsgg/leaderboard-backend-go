@@ -22,22 +22,7 @@ paths:
         '201':
           $ref: '#/components/responses/UserRegisterSuccessResponse'
         '409':
-          description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    maxItems: 1
-                    items:
-                      type: object
-                      properties:
-                        constraint:
-                          type: string
-                        message:
-                          type: string
+          $ref: '#/components/responses/UserRegister409Response'
         '500':
           description: Server error.
   /login:
@@ -52,13 +37,10 @@ paths:
               $ref: '#/components/schemas/UserLogin'
       responses:
         '200':
-          # TODO: Do we set a cookie here too? See: auth_jwt.go:465
           $ref: '#/components/responses/UserLoginSuccessResponse'
         '401':
-          description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
           $ref: '#/components/responses/UserLogin401ErrorResponse'
         '500':
-          description: Server error.
           $ref: '#/components/responses/UserLogin500ErrorResponse'
   /logout:
     post:
@@ -71,31 +53,13 @@ paths:
       summary: Refreshes the JWT for the currently logged-in user. The token still needs to be valid on refresh.
       responses:
         '200':
-          description: 'Token was refreshed successfully. A new token will be returned under `{"token": <token>}`.'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    format: jwt
-              example: { "token": "<example_jwt>" }
+          $ref: '#/components/responses/RefreshToken200Response'
   /ping:
     get:
       summary: A simple check. A de facto health check endpoint.
       responses:
         '200':
-          description: "The server's running. A `{\"message\": \"pong\"}` will be returned."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: pong
+          $ref: '#/components/responses/Ping200Response'
   /users/{id}:
     get:
       summary: Returns a user by ID.
@@ -113,17 +77,9 @@ paths:
         '400':
           description: Bad request. `id` must be an integer and be larger than 0.
         '404':
-          description: No user with `id` could be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseBody'
+          $ref: '#/components/responses/GetUser404Response'
         '500':
-          description: Server error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseBody'
+          $ref: '#/components/responses/GetUser500Response'
   /me:
     get:
       summary: Gets the currently logged-in user.
@@ -230,6 +186,18 @@ components:
             properties:
               data:
                 $ref: '#/components/schemas/UserIdentifier'
+    GetUser404Response:
+      description: No user with `id` could be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseBody'
+    GetUser500Response:
+      description: Server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseBody'
     UserRegisterSuccessResponse:
       description: An object with a "data" key mapped to a [UserIdentifier](#/components/schemas/UserIdentifier).
       content:
@@ -247,6 +215,23 @@ components:
           schema:
             type: string
             example: /api/v1/users/1
+    UserRegister409Response:
+      description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                maxItems: 1
+                items:
+                  type: object
+                  properties:
+                    constraint:
+                      type: string
+                    message:
+                      type: string
     UserPersonalSuccessResponse:
       description: The user was found.
       content:
@@ -290,3 +275,25 @@ components:
               token:
                 type: string
                 format: jwt
+    RefreshToken200Response:
+      description: 'Token was refreshed successfully. A new token will be returned under `{"token": <token>}`.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                format: jwt
+          example: { "token": "<example_jwt>" }
+    Ping200Response:
+      description: "The server's running. A `{\"message\": \"pong\"}` will be returned."
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example:
+              message: pong
