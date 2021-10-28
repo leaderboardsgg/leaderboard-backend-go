@@ -46,8 +46,7 @@ func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserIdentifi
 //CreateUser creates a user
 //
 //TODO: Replace with userstore method?
-func (s gormContainer) CreateUser(user model.User, provider string) (*model.User, error) {
+func (s gormContainer) CreateUser(user model.User) (*model.User, error) {
 	err := s.DB.Create(&user).Error
 	return &user, err
-
 }
