@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"text/template"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,16 +39,12 @@ func OauthLogin(c *gin.Context) {
 
 }
 
+//OauthCallback handles the oauth(1.0a/2) callback mechanism
+//The frontend needs to make sure to append ?provider={provider}
 func OauthCallback(c *gin.Context) {
-	log.Printf("%s oauth callback", c.Param("provider"))
-
-	// Technically goth works with URL params but not gins it seems
-	// So we manually set a query paramater here
-	// Its a bit hacky but :shrug:
-	// goth really should just allow people to pass in provider...
-	queryString := c.Request.URL.Query()
-	queryString.Add("provider", c.Param("provider"))
-	c.Request.URL.RawQuery = queryString.Encode()
+	//TODO: Connect to JWT
+	provider := c.Query("provider")
+	log.Printf("%s oauth callback", provider)
 
 	providerUserData, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
@@ -58,41 +53,50 @@ func OauthCallback(c *gin.Context) {
 		})
 		return
 	}
-	existingUser, err := Oauth.GetUserByTwitterID(providerUserData.UserID)
 
-	if err != nil {
+	var existingUser *model.UserIdentifier
+	var userLookupErr error
+	if provider == twitterProvider.Name() {
+		existingUser, userLookupErr = Oauth.GetUserByTwitterID(providerUserData.UserID)
+	}
+
+	if userLookupErr != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
-			Error: err.Error(),
+			Error: userLookupErr.Error(),
 		})
 		return
 	}
 
 	if existingUser != nil {
-		userTemplate := `
-<p><a href="/logout/twitter">logout</a></p>
-<p>Name: {{.Email}}</p>
-`
-		c.Status(http.StatusOK)
-		t, _ := template.New("foo").Parse(userTemplate)
-		t.Execute(c.Writer, existingUser)
-		//@TODO: Setup JWT
-		// c.Redirect(http.StatusTemporaryRedirect, "/")
+		c.JSON(http.StatusOK, gin.H{
+			//We "copy" the struct here to ensure that response is consistent
+			//even if the type of the existing user changes
+			"data": &model.UserIdentifier{
+				ID:       existingUser.ID,
+				Username: existingUser.Username,
+			},
+		})
 		return
 	}
-
 	randNum := rand.New(rand.NewSource(time.Now().UnixNano()))
-	//TODO: Attempt to use their twitter username but fallback to random if failed
-	newUser := model.User{
-		Username:  fmt.Sprintf("Runner-%d", randNum.Int()),
-		Email:     providerUserData.Email,
-		TwitterID: &providerUserData.UserID,
+	username := fmt.Sprintf("Runner-%d", randNum.Int())
+	var createdUser *model.User
+	var userCreationError error
+	if provider == twitterProvider.Name() {
+		//TODO: Attempt to use their twitter username but fallback to random if failed
+		newUser := model.User{
+			Username:  username,
+			Email:     providerUserData.Email,
+			TwitterID: &providerUserData.UserID,
+		}
+		createdUser, userCreationError = Oauth.CreateUser(newUser)
 	}
-	createdUser, err := Oauth.CreateUser(newUser)
 
-	if err != nil {
+	if userCreationError != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			//TODO Create a standard interface for unique violations
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
 				"errors": [1]gin.H{{"constraint": pgErr.ConstraintName, "message": pgErr.Detail}},
 			})
@@ -102,14 +106,12 @@ func OauthCallback(c *gin.Context) {
 
 		return
 	}
-	//TODO: Setup JWT
-	// c.Redirect(http.StatusOK, "/")
-	userTemplate := `
-<p><a href="/logout/twitter">logout</a></p>
-<p>Name: {{.Email}}</p>
-`
-	c.Status(http.StatusOK)
-	t, _ := template.New("foo").Parse(userTemplate)
-	t.Execute(c.Writer, createdUser)
-
+	c.JSON(http.StatusOK, gin.H{
+		//We "copy" the struct here to ensure that response is consistent
+		//even if the type of the existing user changes
+		"data": &model.UserIdentifier{
+			ID:       createdUser.ID,
+			Username: createdUser.Username,
+		},
+	})
 }

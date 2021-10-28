@@ -12,7 +12,7 @@ type gormContainer struct {
 }
 
 type OauthStore interface {
-	GetUserByTwitterID(string) (*model.UserPersonal, error)
+	GetUserByTwitterID(string) (*model.UserIdentifier, error)
 	CreateUser(model.User) (*model.User, error)
 }
 
@@ -26,8 +26,8 @@ func InitGormContainer(db *gorm.DB) {
 }
 
 //GetUserByTwitterID fetches a user by their twitter ID
-func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserPersonal, error) {
-	var maybeExistingUser model.UserPersonal
+func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserIdentifier, error) {
+	var maybeExistingUser model.UserIdentifier
 	result := s.DB.Model(&model.User{}).Where("twitter_id = ?", twitterID).First(&maybeExistingUser)
 
 	// No error means we found a user
@@ -46,7 +46,8 @@ func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserPersonal
 //CreateUser creates a user
 //
 //TODO: Replace with userstore method?
-func (s gormContainer) CreateUser(user model.User) (*model.User, error) {
+func (s gormContainer) CreateUser(user model.User, provider string) (*model.User, error) {
 	err := s.DB.Create(&user).Error
 	return &user, err
+
 }
