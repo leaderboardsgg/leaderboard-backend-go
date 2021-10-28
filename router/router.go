@@ -39,8 +39,8 @@ func InitRoutes(router *gin.Engine) {
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.Ping)
 	api.GET("/users/:id", handlers.GetUser)
-	api.GET("/oauth/authenticate/", oauth.OauthLogin)
-	api.GET("/oauth/callback/:provider", oauth.OauthCallback)
+	api.GET("/oauth/authenticate", oauth.OauthLogin)
+	api.GET("/oauth/callback", oauth.OauthCallback)
 	api.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 		t, _ := template.New("foo").Parse(indexTemplate)

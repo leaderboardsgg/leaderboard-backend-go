@@ -109,6 +109,7 @@ func OauthCallback(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		//We "copy" the struct here to ensure that response is consistent
 		//even if the type of the existing user changes
+		//to prevent unwanted data from being sent
 		"data": &model.UserIdentifier{
 			ID:       createdUser.ID,
 			Username: createdUser.Username,
