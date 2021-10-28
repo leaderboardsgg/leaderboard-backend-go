@@ -1,0 +1,299 @@
+openapi: 3.0.2
+info:
+  title: Leaderboards.gg API
+  description: This is the docs for the Leaderboards.gg API version 1.
+  version: "1"
+
+servers:
+  - url: https://leaderboards.gg/api/v1
+
+paths:
+  /register:
+    post:
+      summary: Registers a user.
+      requestBody:
+        description: A [UserRegister](#/components/schemas/UserRegister) object.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          $ref: '#/components/responses/UserRegister201'
+        '409':
+          $ref: '#/components/responses/UserRegister409'
+        '500':
+          description: Server error.
+  /login:
+    post:
+      summary: Logs a user in.
+      requestBody:
+        description: 'A UserLogin object. It has two required properties: `username` and `password`.'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserLogin200'
+        '401':
+          $ref: '#/components/responses/UserLogin401'
+        '500':
+          $ref: '#/components/responses/UserLogin500'
+  /logout:
+    post:
+      summary: Logs a user out.
+      responses:
+        '200':
+          description: User logged out successfully.
+  /refresh_token:
+    get:
+      summary: Refreshes the JWT for the currently logged-in user. The token still needs to be valid on refresh.
+      responses:
+        '200':
+          $ref: '#/components/responses/RefreshToken200'
+  /ping:
+    get:
+      summary: A simple check. A de facto health check endpoint.
+      responses:
+        '200':
+          $ref: '#/components/responses/Ping200'
+  /users/{id}:
+    get:
+      summary: Returns a user by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+            format: uint64
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/GetUser200'
+        '400':
+          description: Bad request. `id` must be an integer and be larger than 0.
+        '404':
+          $ref: '#/components/responses/GetUser404'
+        '500':
+          $ref: '#/components/responses/GetUser500'
+  /me:
+    get:
+      summary: Gets the currently logged-in user.
+      responses:
+        '200':
+          $ref: '#/components/responses/UserPersonal200'
+        '500':
+          description: Server error.
+
+components:
+  schemas:
+    email:
+      type: string
+      format: email
+      example: johnsmithruns@leaderboards.gg
+    password:
+      type: string
+      format: password
+      minLength: 8
+      example: "password"
+    userId:
+      type: integer
+      format: uint64
+      minimum: 1
+      example: 1
+    username:
+      type: string
+      minLength: 2
+      example: "JohnSmithRuns"
+    UserIdentifier:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          $ref: '#/components/schemas/userId'
+        username:
+          $ref: '#/components/schemas/username'
+    UserPersonal:
+      allOf:
+        - $ref: '#/components/schemas/UserIdentifier'
+        - type: object
+          required:
+            - email
+          properties:
+            email:
+              $ref: '#/components/schemas/email'
+    UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          $ref: '#/components/schemas/username'
+        password:
+          $ref: '#/components/schemas/password'
+    UserRegister:
+      allOf:
+        - type: object
+          required:
+            - email
+            - password
+            - password_confirm
+            - username
+          properties:
+            email:
+              $ref: '#/components/schemas/email'
+            password:
+              $ref: '#/components/schemas/password'
+            password_confirm:
+              $ref: '#/components/schemas/password'
+            username:
+              $ref: '#/components/schemas/username'
+    UserLoginErrorResponseBody:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: number
+          minimum: 400
+          maxItems: 599
+        message:
+          type: string
+    ErrorResponseBody:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+  responses:
+    GetUser200:
+      description: "User was found. The response will be in the form `{\"user\": <UserIdentifier>}`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserIdentifier'
+    GetUser404:
+      description: No user with `id` could be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseBody'
+    GetUser500:
+      description: Server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseBody'
+    UserRegister201:
+      description: An object with a "data" key mapped to a [UserIdentifier](#/components/schemas/UserIdentifier).
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserIdentifier'
+      headers:
+        Location:
+          description: The slug to the user.
+          schema:
+            type: string
+            example: /api/v1/users/1
+    UserRegister409:
+      description: The user cannot be created as the post request body contains a username and/or an email address that already exist(s) in the database.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                maxItems: 1
+                items:
+                  type: object
+                  properties:
+                    constraint:
+                      type: string
+                    message:
+                      type: string
+    UserPersonal200:
+      description: The user was found.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UserPersonal'
+    UserLogin401:
+      description: User is unauthorized to log in. This can either be because authentication or JWT creation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserLoginErrorResponseBody'
+          example: {
+            "code": 401,
+            "message": "missing Username or Password"
+          }
+    UserLogin500:
+      description: Server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserLoginErrorResponseBody'
+          example: {
+            "code": 500,
+            "message": "Internal server error"
+          }
+    UserLogin200:
+      description: User logged in successfully. A JWT that lasts for an hour will be returned.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+                format: jwt
+    RefreshToken200:
+      description: 'Token was refreshed successfully. A new token will be returned under `{"token": <token>}`.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                format: jwt
+          example: { "token": "<example_jwt>" }
+    Ping200:
+      description: "The server's running. A `{\"message\": \"pong\"}` will be returned."
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example:
+              message: pong
