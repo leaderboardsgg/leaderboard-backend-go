@@ -36,7 +36,6 @@ func OauthLogin(c *gin.Context) {
 	log.Printf("%s oauth authentication", c.Param("provider"))
 	// Handles redirecting the user
 	gothic.BeginAuthHandler(c.Writer, c.Request)
-
 }
 
 //OauthCallback handles the oauth(1.0a/2) callback mechanism
