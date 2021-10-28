@@ -68,8 +68,15 @@ func OauthCallback(c *gin.Context) {
 	}
 
 	if existingUser != nil {
+		userTemplate := `
+<p><a href="/logout/twitter">logout</a></p>
+<p>Name: {{.Email}}</p>
+`
+		c.Status(http.StatusOK)
+		t, _ := template.New("foo").Parse(userTemplate)
+		t.Execute(c.Writer, existingUser)
 		//@TODO: Setup JWT
-		c.Redirect(http.StatusOK, "/")
+		// c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 

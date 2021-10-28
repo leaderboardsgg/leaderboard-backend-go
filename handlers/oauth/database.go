@@ -12,7 +12,7 @@ type gormContainer struct {
 }
 
 type OauthStore interface {
-	GetUserByTwitterID(string) (*model.UserIdentifier, error)
+	GetUserByTwitterID(string) (*model.UserPersonal, error)
 	CreateUser(model.User) (*model.User, error)
 }
 
@@ -26,8 +26,8 @@ func InitGormContainer(db *gorm.DB) {
 }
 
 //GetUserByTwitterID fetches a user by their twitter ID
-func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserIdentifier, error) {
-	var maybeExistingUser model.UserIdentifier
+func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.UserPersonal, error) {
+	var maybeExistingUser model.UserPersonal
 	result := s.DB.Model(&model.User{}).Where("twitter_id = ?", twitterID).First(&maybeExistingUser)
 
 	// No error means we found a user
