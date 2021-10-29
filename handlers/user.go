@@ -76,7 +76,7 @@ func RegisterUser(c *gin.Context) {
 	err = database.Users.CreateUser(user)
 
 	if err != nil {
-		if uniquenessErr, ok := err.(database.UserUniquenessError); ok {
+		if errors.Is(err, database.ErrUserNotUnique) {
 			/*
 			 * TODO: we probably don't want to reveal if an email is already in use.
 			 * Maybe just give a 201 and send an email saying that someone tried to sign up as you.
@@ -87,7 +87,7 @@ func RegisterUser(c *gin.Context) {
 			 * --RageCage
 			 */
 			c.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{
-				Error: uniquenessErr.Error(),
+				Error: err.Error(),
 			})
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)

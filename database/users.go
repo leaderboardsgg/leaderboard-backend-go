@@ -21,13 +21,7 @@ type UserStore interface {
 // Errors
 var ErrUserNotFound = errors.New("the requested user was not found")
 
-type UserUniquenessError struct {
-	ErrorField string
-}
-
-func (e UserUniquenessError) Error() string {
-	return "user creation failed"
-}
+var ErrUserNotUnique = errors.New("attempted to create a user with duplicate data")
 
 type UserCreationError struct {
 	Err error

@@ -51,9 +51,7 @@ func (s gormUserStore) CreateUser(user model.User) error {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return UserUniquenessError{
-				ErrorField: pgErr.ColumnName,
-			}
+			return ErrUserNotUnique
 		}
 		return UserCreationError{
 			Err: pgErr,
