@@ -107,9 +107,7 @@ func TestGetUser400WithoutID(t *testing.T) {
 
 	handlers.GetUser(c)
 
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
-	}
+	testExpectedStatusCode(t, w.Result(), http.StatusBadRequest)
 }
 
 func TestGetUser404WithNoUser(t *testing.T) {
@@ -127,14 +125,14 @@ func TestGetUser404WithNoUser(t *testing.T) {
 
 	handlers.GetUser(c)
 
-	if w.Result().StatusCode != http.StatusNotFound {
-		t.Fatal(statusCodeMismatchMessage(http.StatusNotFound, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusNotFound)
+	testContentTypeHeader(t, r, "application/json")
 
 	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(jsonParseFailureMessage("GetUserErrorResponse", w.Body.String()))
+		t.Fatal(jsonParseFailureMessage("GetUserResponse", w.Body.String()))
 	}
 }
 
@@ -153,9 +151,9 @@ func TestGetUser200WithRealUser(t *testing.T) {
 
 	handlers.GetUser(c)
 
-	if w.Result().StatusCode != http.StatusOK {
-		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusOK)
+	testContentTypeHeader(t, r, "application/json")
 
 	var response handlers.UserIdentifierResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
@@ -177,9 +175,8 @@ func TestRegisterUser400WithImproperRequestFormat(t *testing.T) {
 
 	handlers.RegisterUser(c)
 
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusBadRequest)
 }
 
 func TestRegisterUser400IfPasswordConfirmDoesNotMatch(t *testing.T) {
@@ -201,9 +198,8 @@ func TestRegisterUser400IfPasswordConfirmDoesNotMatch(t *testing.T) {
 
 	handlers.RegisterUser(c)
 
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Fatal(statusCodeMismatchMessage(http.StatusBadRequest, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusBadRequest)
 }
 
 func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
@@ -225,9 +221,9 @@ func TestRegisterUser409WithNonUniqueUsername(t *testing.T) {
 
 	handlers.RegisterUser(c)
 
-	if w.Result().StatusCode != http.StatusConflict {
-		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusConflict)
+	testContentTypeHeader(t, r, "application/json")
 
 	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
@@ -255,9 +251,9 @@ func TestRegisterUser409WithNonUniqueEmail(t *testing.T) {
 
 	handlers.RegisterUser(c)
 
-	if w.Result().StatusCode != http.StatusConflict {
-		t.Fatal(statusCodeMismatchMessage(http.StatusConflict, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusConflict)
+	testContentTypeHeader(t, r, "application/json")
 
 	var response handlers.ErrorResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
@@ -286,9 +282,9 @@ func TestRegisterUser201SatisfyingAllRequirements(t *testing.T) {
 
 	handlers.RegisterUser(c)
 
-	if w.Result().StatusCode != http.StatusCreated {
-		t.Fatal(statusCodeMismatchMessage(http.StatusCreated, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusCreated)
+	testContentTypeHeader(t, r, "application/json")
 
 	if !strings.Contains(w.Header().Get("Location"), "/api/v1/users") {
 		t.FailNow()
@@ -308,9 +304,8 @@ func TestMe500WhenJwtConfigFails(t *testing.T) {
 
 	handlers.Me(c)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusInternalServerError)
 }
 
 func TestMe500WhenRawUserDataCannotBeCasted(t *testing.T) {
@@ -321,9 +316,8 @@ func TestMe500WhenRawUserDataCannotBeCasted(t *testing.T) {
 
 	handlers.Me(c)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusInternalServerError)
 }
 
 func TestMe500WhenUserInJWTIsNotReal(t *testing.T) {
@@ -336,9 +330,8 @@ func TestMe500WhenUserInJWTIsNotReal(t *testing.T) {
 
 	handlers.Me(c)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.Fatal(statusCodeMismatchMessage(http.StatusInternalServerError, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusInternalServerError)
 }
 
 func TestMe200WhenUserInJWTIsReal(t *testing.T) {
@@ -351,9 +344,9 @@ func TestMe200WhenUserInJWTIsReal(t *testing.T) {
 
 	handlers.Me(c)
 
-	if w.Result().StatusCode != http.StatusOK {
-		t.Fatal(statusCodeMismatchMessage(http.StatusOK, w.Result().StatusCode))
-	}
+	r := w.Result()
+	testExpectedStatusCode(t, r, http.StatusOK)
+	testContentTypeHeader(t, r, "application/json")
 
 	var response handlers.UserPersonalResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
@@ -380,12 +373,28 @@ func makeJsonBodyPostRequest(c *gin.Context, content interface{}) error {
 	return nil
 }
 
-func statusCodeMismatchMessage(expected, actual int) string {
-	return fmt.Sprintf(
-		"Expected status code %d, got %d",
-		expected,
-		actual,
-	)
+func testExpectedStatusCode(t *testing.T, r *http.Response, expectedStatusCode int) {
+	if r.StatusCode != expectedStatusCode {
+		t.Fatalf(
+			"Expected status code %d, got %d",
+			expectedStatusCode,
+			r.StatusCode,
+		)
+	}
+}
+
+func testContentTypeHeader(t *testing.T, r *http.Response, expectedType string) {
+	contentType := r.Header.Get("Content-Type")
+
+	// Sometimes the content-type includes other data
+	// like charset that isn't a pass/failure case
+	if !strings.HasPrefix(contentType, expectedType) {
+		t.Fatalf(
+			"Expected Content-Type header %s, got %s",
+			expectedType,
+			contentType,
+		)
+	}
 }
 
 func jsonParseFailureMessage(typeName, data string) string {
