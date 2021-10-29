@@ -1,7 +1,7 @@
 package database
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/speedrun-website/leaderboard-backend/model"
 )
@@ -16,20 +16,7 @@ type UserStore interface {
 }
 
 // Errors
-type UserNotFoundError struct {
-	ID    uint64
-	Email string
-}
-
-func (e UserNotFoundError) Error() string {
-	var errString string
-	if e.Email != "" {
-		errString = fmt.Sprintf("User with email %s was not found", e.Email)
-	} else {
-		errString = fmt.Sprintf("User with ID %d was not found", e.ID)
-	}
-	return errString
-}
+var UserNotFoundError = errors.New("The requested user was not found.")
 
 type UserUniquenessError struct {
 	ErrorField string

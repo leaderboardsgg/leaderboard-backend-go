@@ -55,7 +55,7 @@ func (s mockUserStore) GetUserIdentifierById(userId uint64) (*model.UserIdentifi
 			return &userIdentifier, nil
 		}
 	}
-	return nil, database.UserNotFoundError{ID: userId}
+	return nil, database.UserNotFoundError
 }
 
 func (s mockUserStore) GetUserPersonalById(userId uint64) (*model.UserPersonal, error) {
@@ -69,7 +69,7 @@ func (s mockUserStore) GetUserPersonalById(userId uint64) (*model.UserPersonal, 
 			return &userPersonal, nil
 		}
 	}
-	return nil, database.UserNotFoundError{ID: userId}
+	return nil, database.UserNotFoundError
 }
 
 func (s mockUserStore) GetUserByEmail(email string) (*model.User, error) {

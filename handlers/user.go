@@ -36,7 +36,7 @@ func GetUser(c *gin.Context) {
 
 	if err != nil {
 		var code int
-		if errors.Is(err, database.UserNotFoundError{ID: id}) {
+		if errors.Is(err, database.UserNotFoundError) {
 			code = http.StatusNotFound
 		} else {
 			code = http.StatusInternalServerError

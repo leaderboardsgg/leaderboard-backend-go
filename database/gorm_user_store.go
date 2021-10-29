@@ -17,7 +17,7 @@ func (s gormUserStore) GetUserIdentifierById(userId uint64) (*model.UserIdentifi
 	var user model.UserIdentifier
 	err := s.DB.Model(&model.User{}).First(&user, userId).Error
 	if err != nil {
-		return nil, UserNotFoundError{ID: userId}
+		return nil, UserNotFoundError
 	}
 	return &user, nil
 }
@@ -26,7 +26,7 @@ func (s gormUserStore) GetUserPersonalById(userId uint64) (*model.UserPersonal, 
 	var user model.UserPersonal
 	err := s.DB.Model(&model.User{}).First(&user, userId).Error
 	if err != nil {
-		return nil, UserNotFoundError{ID: userId}
+		return nil, UserNotFoundError
 	}
 	return &user, nil
 }
@@ -37,7 +37,7 @@ func (s gormUserStore) GetUserByEmail(email string) (*model.User, error) {
 		Email: email,
 	}).First(&user).Error
 	if err != nil {
-		return nil, UserNotFoundError{Email: email}
+		return nil, UserNotFoundError
 	}
 	return &user, nil
 }
