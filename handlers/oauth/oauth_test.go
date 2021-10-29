@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -256,4 +257,30 @@ func Test_OauthCallbackCreatesNewUser(t *testing.T) {
 	if expectedUser == nil {
 		t.Fatalf("Expected a user to be created but was nil response was %+v", responseJSON)
 	}
+}
+
+func Test_InitializeProviders(t *testing.T) {
+	setEnvErr := os.Setenv("ENABLED_PROVIDERS", "twitter")
+	if setEnvErr != nil {
+		t.Fatalf("issue setting environment variable: %s", setEnvErr)
+	}
+
+	InitializeProviders()
+
+	_, getProviderErr := goth.GetProvider(twitterProvider.Name())
+	if getProviderErr != nil {
+		t.Fatalf("issue getting twitter provider %s", getProviderErr)
+	}
+	goth.ClearProviders()
+
+	setEnvErr = os.Setenv("ENABLED_PROVIDERS", "fakeoauthprovider")
+	if setEnvErr != nil {
+		t.Fatalf("issue setting environment variable: %s", setEnvErr)
+	}
+
+	provider, getProviderErr := goth.GetProvider(twitterProvider.Name())
+	if getProviderErr == nil {
+		t.Fatalf("expected fake provider to error but got a provider back instead %s", provider.Name())
+	}
+
 }
