@@ -1,9 +1,6 @@
 package router
 
 import (
-	"html/template"
-	"net/http"
-
 	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +11,6 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/handlers/oauth"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 )
-
-var indexTemplate = `
-    <p><a href="/api/v1/oauth/authenticate?provider=twitter">Log in with Twitter</a></p>
-`
 
 func InitRoutes(router *gin.Engine) {
 	router.Use(cors.New(cors.Options{
@@ -41,11 +34,6 @@ func InitRoutes(router *gin.Engine) {
 	api.GET("/users/:id", handlers.GetUser)
 	api.GET("/oauth/authenticate", oauth.OauthLogin)
 	api.GET("/oauth/callback", oauth.OauthCallback)
-	api.GET("/", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-		t, _ := template.New("foo").Parse(indexTemplate)
-		t.Execute(c.Writer, indexTemplate)
-	})
 
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())
