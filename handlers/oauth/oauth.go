@@ -24,16 +24,21 @@ var twitterProvider = twitter.NewAuthenticate(
 	os.Getenv("TWITTER_OAUTH_CALLBACK_URL"),
 )
 
+var completeUserAuth = gothic.CompleteUserAuth
+
 func InitializeProviders() {
 	goth.UseProviders(twitterProvider)
 }
 
+//TODO Replace with generic error response struct
 type OauthErrorResponse struct {
 	Error string `json:"error"`
 }
 
+//OauthLogin begins the oauth authentication process
+//such as fetching tokens and redirecting the user to the providers website.
 func OauthLogin(c *gin.Context) {
-	log.Printf("%s oauth authentication", c.Param("provider"))
+	log.Printf("%s oauth authentication", c.Query("provider"))
 	// Handles redirecting the user
 	gothic.BeginAuthHandler(c.Writer, c.Request)
 }
@@ -45,36 +50,42 @@ func OauthCallback(c *gin.Context) {
 	provider := c.Query("provider")
 	log.Printf("%s oauth callback", provider)
 
-	providerUserData, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+	providerUserData, err := completeUserAuth(c.Writer, c.Request)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
+		c.AbortWithStatusJSON(http.StatusInternalServerError, &OauthErrorResponse{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	var existingUser *model.UserIdentifier
+	var existingUser *model.User
 	var userLookupErr error
 	if provider == twitterProvider.Name() {
 		existingUser, userLookupErr = Oauth.GetUserByTwitterID(providerUserData.UserID)
+	} else {
+		c.AbortWithStatusJSON(http.StatusBadRequest, OauthErrorResponse{
+			Error: fmt.Sprintf("Unsupported provider %s", provider),
+		})
+		return
 	}
 
 	if userLookupErr != nil {
+		log.Printf("error looking up user: %s", userLookupErr)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
-			Error: userLookupErr.Error(),
+			Error: "Issue finding user",
 		})
 		return
 	}
 
 	if existingUser != nil {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusOK,
 			//We "copy" the struct here to ensure that response is consistent
 			//even if the type of the existing user changes
-			"data": &model.UserIdentifier{
+			&model.UserIdentifier{
 				ID:       existingUser.ID,
 				Username: existingUser.Username,
 			},
-		})
+		)
 		return
 	}
 	randNum := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -95,23 +106,25 @@ func OauthCallback(c *gin.Context) {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			//TODO Create a standard interface for unique violations
+			//TODO: Create a standard interface for unique violations
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{
 				"errors": [1]gin.H{{"constraint": pgErr.ConstraintName, "message": pgErr.Detail}},
 			})
 		} else {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
+				Error: "Issue creating user",
+			})
 		}
 
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusOK,
 		//We "copy" the struct here to ensure that response is consistent
 		//even if the type of the existing user changes
 		//to prevent unwanted data from being sent
-		"data": &model.UserIdentifier{
+		&model.UserIdentifier{
 			ID:       createdUser.ID,
 			Username: createdUser.Username,
 		},
-	})
+	)
 }
