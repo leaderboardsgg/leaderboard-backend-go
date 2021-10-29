@@ -1,5 +1,5 @@
 package handlers
 
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Errors []error `json:"error"`
 }
