@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,17 @@ var twitterProvider = twitter.NewAuthenticate(
 var completeUserAuth = gothic.CompleteUserAuth
 
 func InitializeProviders() {
+	enabledProviders := strings.Split(os.Getenv("ENABLED_PROVIDERS"), ",")
+	for _, provider := range enabledProviders {
+		cleanedProvider := strings.ToUpper(strings.TrimSpace(provider))
+		switch cleanedProvider {
+		case twitterProvider.Name():
+			log.Println("enabling twitter provider")
+			goth.UseProviders(twitterProvider)
+		default:
+			log.Printf("Unknown provider %s", cleanedProvider)
+		}
+	}
 	goth.UseProviders(twitterProvider)
 }
 
