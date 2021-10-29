@@ -6,8 +6,11 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
+// The globally exported UserStore that the application will use.
 var Users UserStore
 
+// The UserStore interface, which defines ways that the application
+// can query for users.
 type UserStore interface {
 	GetUserIdentifierById(uint64) (*model.UserIdentifier, error)
 	GetUserPersonalById(uint64) (*model.UserPersonal, error)
@@ -16,14 +19,14 @@ type UserStore interface {
 }
 
 // Errors
-var UserNotFoundError = errors.New("The requested user was not found.")
+var ErrUserNotFound = errors.New("the requested user was not found")
 
 type UserUniquenessError struct {
 	ErrorField string
 }
 
 func (e UserUniquenessError) Error() string {
-	return "User creation failed"
+	return "user creation failed"
 }
 
 type UserCreationError struct {
@@ -31,5 +34,5 @@ type UserCreationError struct {
 }
 
 func (e UserCreationError) Error() string {
-	return "The user creation failed with the following error: " + e.Err.Error()
+	return "the user creation failed with the following error: " + e.Err.Error()
 }

@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// gormUserStore is an implementation of the UserStore interface
+// defined in users.go that accesses the database using GORM.
 type gormUserStore struct {
 	DB *gorm.DB
 }
@@ -17,7 +19,7 @@ func (s gormUserStore) GetUserIdentifierById(userId uint64) (*model.UserIdentifi
 	var user model.UserIdentifier
 	err := s.DB.Model(&model.User{}).First(&user, userId).Error
 	if err != nil {
-		return nil, UserNotFoundError
+		return nil, ErrUserNotFound
 	}
 	return &user, nil
 }
@@ -26,7 +28,7 @@ func (s gormUserStore) GetUserPersonalById(userId uint64) (*model.UserPersonal, 
 	var user model.UserPersonal
 	err := s.DB.Model(&model.User{}).First(&user, userId).Error
 	if err != nil {
-		return nil, UserNotFoundError
+		return nil, ErrUserNotFound
 	}
 	return &user, nil
 }
@@ -37,7 +39,7 @@ func (s gormUserStore) GetUserByEmail(email string) (*model.User, error) {
 		Email: email,
 	}).First(&user).Error
 	if err != nil {
-		return nil, UserNotFoundError
+		return nil, ErrUserNotFound
 	}
 	return &user, nil
 }
@@ -61,11 +63,14 @@ func (s gormUserStore) CreateUser(user model.User) error {
 	return nil
 }
 
+// Initializes a GORM user store and sets the exported
+// user store for application use.
 func initGormUserStore(db *gorm.DB) error {
 	if err := db.AutoMigrate(&model.User{}); err != nil {
 		return err
 	}
 
+	// Users is defined in database/users.go
 	Users = &gormUserStore{
 		DB: db,
 	}
