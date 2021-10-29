@@ -116,6 +116,7 @@ func Me(c *gin.Context) {
 				c.JSON(http.StatusOK, UserPersonalResponse{
 					User: userInfo,
 				})
+				return
 			}
 		}
 	}
