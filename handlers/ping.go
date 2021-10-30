@@ -6,8 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PingHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
+type PingResponse struct {
+	Message string `json:"message"`
+}
+
+func Ping(c *gin.Context) {
+	c.JSON(http.StatusOK, SuccessResponse{
+		Data: PingResponse{
+			Message: "pong",
+		},
 	})
 }

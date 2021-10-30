@@ -5,12 +5,9 @@ import (
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/speedrun-website/leaderboard-backend/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-var DB *gorm.DB
 
 type dbConfig struct {
 	host     string
@@ -33,13 +30,13 @@ var dns = fmt.Sprintf(
 	config.host, config.port, config.user, config.dbname, config.password)
 
 func Init() error {
-	var err error
-
-	if DB, err = gorm.Open(postgres.Open(dns), &gorm.Config{}); err != nil {
+	DB, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
+	if err != nil {
 		return err
 	}
 
-	if err = DB.AutoMigrate(&model.User{}); err != nil {
+	err = initGormUserStore(DB)
+	if err != nil {
 		return err
 	}
 
