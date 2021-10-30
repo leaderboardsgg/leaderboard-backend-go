@@ -11,7 +11,9 @@ type PingResponse struct {
 }
 
 func Ping(c *gin.Context) {
-	c.JSON(http.StatusOK, PingResponse{
-		Message: "pong",
+	c.JSON(http.StatusOK, SuccessResponse{
+		Data: PingResponse{
+			Message: "pong",
+		},
 	})
 }

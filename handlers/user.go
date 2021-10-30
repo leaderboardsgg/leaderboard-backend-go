@@ -50,8 +50,10 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, UserIdentifierResponse{
-		User: user,
+	c.JSON(http.StatusOK, SuccessResponse{
+		Data: UserIdentifierResponse{
+			User: user,
+		},
 	})
 }
 
@@ -101,10 +103,12 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
-	c.JSON(http.StatusCreated, UserIdentifierResponse{
-		User: &model.UserIdentifier{
-			ID:       user.ID,
-			Username: user.Username,
+	c.JSON(http.StatusCreated, SuccessResponse{
+		Data: UserIdentifierResponse{
+			User: &model.UserIdentifier{
+				ID:       user.ID,
+				Username: user.Username,
+			},
 		},
 	})
 }
@@ -117,8 +121,10 @@ func Me(c *gin.Context) {
 			userInfo, err := database.Users.GetUserPersonalById(uint64(user.ID))
 
 			if err == nil {
-				c.JSON(http.StatusOK, UserPersonalResponse{
-					User: userInfo,
+				c.JSON(http.StatusOK, SuccessResponse{
+					Data: UserPersonalResponse{
+						User: userInfo,
+					},
 				})
 				return
 			}
