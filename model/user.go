@@ -8,7 +8,7 @@ type User struct {
 	gorm.Model
 	Username string `gorm:"unique"`
 	Email    string `gorm:"unique"`
-	Password string
+	Password [60]byte
 }
 
 type UserIdentifier struct {
