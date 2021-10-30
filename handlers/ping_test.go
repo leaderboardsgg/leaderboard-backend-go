@@ -24,6 +24,9 @@ func TestPingHandlerReturnsOK(t *testing.T) {
 		)
 	}
 
+	// First parse into SuccessResponse to get the data out,
+	// then re-marshal the contents of data. This allows the test
+	// to still work with the concrete PingResponse type.
 	var response handlers.SuccessResponse
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {

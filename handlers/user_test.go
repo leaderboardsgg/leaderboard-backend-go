@@ -384,6 +384,14 @@ func testJsonParseErrorResponse(t *testing.T, responseBytes []byte) {
 	}
 }
 
+// TODO: This function is probably useful in all future tests, but semantically
+// I don't know where it makes sense for this function to exist when it's shared
+// with other test files in the same package.
+// - Braydon K
+//
+// This function will unmarshal the response into a handlers.SuccessResponse,
+// and then re-marshal the contents of `data`. This allows for a testing flow
+// that can still assert by unmarshalling JSON into concrete types.
 func getJsonSuccessResponseData(responseBytes []byte) ([]byte, error) {
 	var response handlers.SuccessResponse
 	err := json.Unmarshal(responseBytes, &response)
