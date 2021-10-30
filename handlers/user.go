@@ -64,7 +64,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	hash, err := utils.HashAndSalt([]byte(registerValue.Password))
+	hash, err := utils.HashAndSalt(registerValue.Password)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -74,8 +74,9 @@ func RegisterUser(c *gin.Context) {
 	user := model.User{
 		Username: registerValue.Username,
 		Email:    registerValue.Email,
-		Password: hash,
 	}
+
+	copy(user.Password[:], hash)
 
 	err = database.Users.CreateUser(user)
 
