@@ -15,8 +15,6 @@ func HashAndSalt(pwd string) ([]byte, error) {
 		return nil, err
 	}
 
-	// GenerateFromPassword returns a byte slice so we need to
-	// convert the bytes to a string and return it
 	return hash, nil
 }
 
