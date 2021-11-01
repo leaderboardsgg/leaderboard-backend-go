@@ -54,7 +54,7 @@ func (s gormUserStore) CreateUser(user model.User) error {
 			return ErrUserNotUnique
 		}
 		return UserCreationError{
-			Err: pgErr,
+			Err: err,
 		}
 	}
 
