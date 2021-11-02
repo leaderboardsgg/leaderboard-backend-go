@@ -15,7 +15,7 @@ type UserStore interface {
 	GetUserIdentifierById(uint64) (*model.UserIdentifier, error)
 	GetUserPersonalById(uint64) (*model.UserPersonal, error)
 	GetUserByEmail(string) (*model.User, error)
-	CreateUser(model.User) error
+	CreateUser(*model.User) error
 }
 
 // Errors

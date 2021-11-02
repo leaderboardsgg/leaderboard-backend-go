@@ -44,8 +44,8 @@ func (s gormUserStore) GetUserByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
-func (s gormUserStore) CreateUser(user model.User) error {
-	err := s.DB.Create(&user).Error
+func (s gormUserStore) CreateUser(user *model.User) error {
+	err := s.DB.Create(user).Error
 
 	if err != nil {
 		var pgErr *pgconn.PgError
