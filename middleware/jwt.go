@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/model"
-	"github.com/speedrun-website/leaderboard-backend/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const identityKey = "id"
@@ -41,23 +41,20 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			return nil, jwt.ErrMissingLoginValues
 		}
 
-		email := loginVals.Email
-		password := loginVals.Password
-
-		user, err := database.Users.GetUserByEmail(email)
+		user, err := database.Users.GetUserByEmail(loginVals.Email)
 		if err != nil {
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		if utils.ComparePasswords(user.Password, []byte(password)) {
-			return &model.UserPersonal{
-				ID:       user.ID,
-				Email:    user.Email,
-				Username: user.Username,
-			}, nil
+		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(loginVals.Password)); err != nil {
+			return nil, jwt.ErrFailedAuthentication
 		}
 
-		return nil, jwt.ErrFailedAuthentication
+		return &model.UserPersonal{
+			ID:       user.ID,
+			Email:    user.Email,
+			Username: user.Username,
+		}, nil
 	},
 	Unauthorized: func(c *gin.Context, code int, message string) {
 		c.JSON(code, gin.H{

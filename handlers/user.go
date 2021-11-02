@@ -11,7 +11,7 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 	"github.com/speedrun-website/leaderboard-backend/model"
-	"github.com/speedrun-website/leaderboard-backend/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserIdentifierResponse struct {
@@ -64,7 +64,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	hash, err := utils.HashAndSalt(registerValue.Password)
+	hash, err := bcrypt.GenerateFromPassword([]byte(registerValue.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
