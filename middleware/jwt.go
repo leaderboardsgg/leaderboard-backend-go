@@ -49,7 +49,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		if utils.ComparePasswords(user.Password[:], []byte(password)) {
+		if utils.ComparePasswords(user.Password, []byte(password)) {
 			return &model.UserPersonal{
 				ID:       user.ID,
 				Email:    user.Email,

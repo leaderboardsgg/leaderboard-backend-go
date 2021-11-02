@@ -74,9 +74,8 @@ func RegisterUser(c *gin.Context) {
 	user := model.User{
 		Username: registerValue.Username,
 		Email:    registerValue.Email,
+		Password: hash,
 	}
-
-	copy(user.Password[:], hash)
 
 	err = database.Users.CreateUser(user)
 
