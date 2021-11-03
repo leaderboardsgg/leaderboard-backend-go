@@ -34,10 +34,9 @@ func (s gormContainer) GetUserByTwitterID(twitterID string) (*model.User, error)
 	if result.Error == nil {
 		return &maybeExistingUser, nil
 	}
-	isNotFoundError := errors.Is(result.Error, gorm.ErrRecordNotFound)
 
 	// We got a real error
-	if !isNotFoundError {
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, result.Error
 	}
 	return nil, nil
