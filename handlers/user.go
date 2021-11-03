@@ -77,7 +77,7 @@ func RegisterUser(c *gin.Context) {
 		Password: hash,
 	}
 
-	err = database.Users.CreateUser(user)
+	err = database.Users.CreateUser(&user)
 
 	if err != nil {
 		if errors.Is(err, database.ErrUserNotUnique) {
