@@ -267,7 +267,7 @@ func Test_InitializeProviders(t *testing.T) {
 
 	InitializeProviders()
 
-	_, getProviderErr := goth.GetProvider(twitterProvider.Name())
+	_, getProviderErr := goth.GetProvider("twitter")
 	if getProviderErr != nil {
 		t.Fatalf("issue getting twitter provider %s", getProviderErr)
 	}
@@ -278,7 +278,7 @@ func Test_InitializeProviders(t *testing.T) {
 		t.Fatalf("issue setting environment variable: %s", setEnvErr)
 	}
 
-	provider, getProviderErr := goth.GetProvider(twitterProvider.Name())
+	provider, getProviderErr := goth.GetProvider("twitter")
 	if getProviderErr == nil {
 		t.Fatalf("expected fake provider to error but got a provider back instead %s", provider.Name())
 	}
