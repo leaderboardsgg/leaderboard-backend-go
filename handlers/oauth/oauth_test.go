@@ -1,4 +1,4 @@
-package oauth
+package oauth_test
 
 import (
 	"encoding/json"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth"
+	"github.com/speedrun-website/leaderboard-backend/handlers/oauth"
 	"github.com/speedrun-website/leaderboard-backend/model"
 )
 
@@ -38,7 +39,7 @@ func initStore() *mockOauthStore {
 	store := mockOauthStore{
 		Users: usersMap,
 	}
-	Oauth = store
+	oauth.Oauth = store
 	return &store
 }
 
@@ -76,12 +77,12 @@ func Test_OauthCallbackUserAuthError(t *testing.T) {
 	}
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
-	OauthCallback(ctx)
+	oauth.OauthCallback(ctx)
 	result := rec.Result()
 	if result.StatusCode != http.StatusInternalServerError {
 		t.Fatalf("Expected %d, got %d", http.StatusInternalServerError, result.StatusCode)
 	}
-	var responseJSON OauthErrorResponse
+	var responseJSON oauth.OauthErrorResponse
 	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
 	if jsonError != nil {
 		t.Fatalf(
@@ -111,13 +112,13 @@ func Test_OauthCallbackUserFetchError(t *testing.T) {
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
-	OauthCallback(ctx)
+	oauth.OauthCallback(ctx)
 	result := rec.Result()
 	if result.StatusCode != http.StatusInternalServerError {
 		t.Fatalf("Expected %d, got %d", http.StatusInternalServerError, result.StatusCode)
 	}
 
-	var responseJSON OauthErrorResponse
+	var responseJSON oauth.OauthErrorResponse
 	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
 	if jsonError != nil {
 		t.Fatalf(
@@ -150,7 +151,7 @@ func Test_OauthCallbackUserCreationError(t *testing.T) {
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
-	OauthCallback(ctx)
+	oauth.OauthCallback(ctx)
 	result := rec.Result()
 	if result.StatusCode != http.StatusOK {
 		t.Fatalf("Expected %d, got %d", http.StatusInternalServerError, result.StatusCode)
@@ -195,7 +196,7 @@ func Test_OauthCallbackReturnsExistingUser(t *testing.T) {
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
-	OauthCallback(ctx)
+	oauth.OauthCallback(ctx)
 	result := rec.Result()
 	if result.StatusCode != http.StatusOK {
 		t.Fatalf("Expected %d, got %d", http.StatusOK, result.StatusCode)
@@ -238,7 +239,7 @@ func Test_OauthCallbackCreatesNewUser(t *testing.T) {
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
-	OauthCallback(ctx)
+	oauth.OauthCallback(ctx)
 	result := rec.Result()
 	if result.StatusCode != http.StatusOK {
 		t.Fatalf("Expected %d, got %d", http.StatusOK, result.StatusCode)
