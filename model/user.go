@@ -26,7 +26,7 @@ type UserRegister struct {
 	Username        string `json:"username" binding:"required"`
 	Email           string `json:"email" binding:"required,email"`
 	Password        string `json:"password" binding:"required,min=8"`
-	PasswordConfirm string `json:"password_confirm" binding:"eqfield=Password"`
+	PasswordConfirm string `json:"passwordConfirm" binding:"eqfield=Password"`
 }
 
 type UserLogin struct {
