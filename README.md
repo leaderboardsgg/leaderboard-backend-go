@@ -3,7 +3,7 @@ An open-source community-driven leaderboard backend for the gaming community.
 
 ## Links
 - Website: https://speedrun.website/
-- Other Repos: https://github.com/speedrun-website
+- Other Repos: https://github.com/leaderboardsgg
 - Discord: https://discord.gg/TZvfau25Vb
 
 # Tech-Stack Information
