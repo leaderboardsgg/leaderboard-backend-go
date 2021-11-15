@@ -43,8 +43,8 @@ func GetUser(c *gin.Context) {
 		}
 
 		c.AbortWithStatusJSON(code, ErrorResponse{
-			Errors: []error{
-				err,
+			Errors: []string{
+				err.Error(),
 			},
 		})
 		return
@@ -91,8 +91,8 @@ func RegisterUser(c *gin.Context) {
 			 * --RageCage
 			 */
 			c.AbortWithStatusJSON(http.StatusConflict, ErrorResponse{
-				Errors: []error{
-					err,
+				Errors: []string{
+					err.Error(),
 				},
 			})
 		} else {

@@ -5,5 +5,5 @@ type SuccessResponse struct {
 }
 
 type ErrorResponse struct {
-	Errors []error `json:"error"`
+	Errors []string `json:"errors"`
 }
