@@ -30,6 +30,8 @@ func InitRoutes(router *gin.Engine) {
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.Ping)
 	api.GET("/users/:id", handlers.GetUser)
+	api.GET("/oauth/authenticate/:provider", handlers.OauthLogin)
+	api.GET("/oauth/callback/:provider", handlers.OauthCallback)
 
 	// auth routes
 	api.Use(authMiddleware.MiddlewareFunc())

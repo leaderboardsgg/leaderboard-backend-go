@@ -6,9 +6,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"unique"`
-	Email    string `gorm:"unique"`
-	Password []byte `gorm:"size:60"`
+	Username  string `gorm:"unique"`
+	Email     string `gorm:"unique"`
+	Password  string
+	TwitterID string `gorm:"unique"`
 }
 
 type UserIdentifier struct {
