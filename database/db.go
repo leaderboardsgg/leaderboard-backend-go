@@ -5,6 +5,7 @@ import (
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/speedrun-website/leaderboard-backend/handlers/oauth"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -39,6 +40,7 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+	oauth.InitGormContainer(DB)
 
 	return nil
 }

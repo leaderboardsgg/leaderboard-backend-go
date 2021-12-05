@@ -10,6 +10,8 @@ import (
 	cors "github.com/rs/cors/wrapper/gin"
 
 	"github.com/speedrun-website/leaderboard-backend/handlers"
+
+	"github.com/speedrun-website/leaderboard-backend/handlers/oauth"
 	"github.com/speedrun-website/leaderboard-backend/middleware"
 )
 
@@ -37,8 +39,8 @@ func InitRoutes(router *gin.Engine) {
 	api.GET("/refresh_token", authMiddleware.RefreshHandler)
 	api.GET("/ping", handlers.Ping)
 	api.GET("/users/:id", handlers.GetUser)
-	api.GET("/oauth/authenticate/", handlers.OauthLogin)
-	api.GET("/oauth/callback/:provider", handlers.OauthCallback)
+	api.GET("/oauth/authenticate/", oauth.OauthLogin)
+	api.GET("/oauth/callback/:provider", oauth.OauthCallback)
 	api.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 		t, _ := template.New("foo").Parse(indexTemplate)

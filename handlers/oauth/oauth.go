@@ -1,4 +1,4 @@
-package handlers
+package oauth
 
 import (
 	"errors"
@@ -16,12 +16,10 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/twitter"
-	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/model"
-	"gorm.io/gorm"
 )
 
-var twitterProvider = twitter.New(
+var twitterProvider = twitter.NewAuthenticate(
 	os.Getenv("TWITTER_OAUTH_KEY"),
 	os.Getenv("TWITTER_OAUTH_SECRET"),
 	os.Getenv("TWITTER_OAUTH_CALLBACK_URL"),
@@ -39,6 +37,7 @@ func OauthLogin(c *gin.Context) {
 	log.Printf("%s oauth authentication", c.Param("provider"))
 	// Handles redirecting the user
 	gothic.BeginAuthHandler(c.Writer, c.Request)
+
 }
 
 func OauthCallback(c *gin.Context) {
@@ -59,35 +58,31 @@ func OauthCallback(c *gin.Context) {
 		})
 		return
 	}
-	var maybeExistingUser model.UserIdentifier
-	result := database.DB.Model(&model.User{}).Where("twitter_id = ?", providerUserData.UserID).First(&maybeExistingUser)
+	existingUser, err := Oauth.GetUserByTwitterID(providerUserData.UserID)
 
-	// No error means we found a user
-	if result.Error == nil {
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	if existingUser != nil {
 		//@TODO: Setup JWT
 		c.Redirect(http.StatusOK, "/")
 		return
 	}
-	isNotFoundError := errors.Is(result.Error, gorm.ErrRecordNotFound)
 
-	// We got an error but its something else other than not being abl
-	if !isNotFoundError {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
-			Error: result.Error.Error(),
-		})
-		return
-	}
 	randNum := rand.New(rand.NewSource(time.Now().UnixNano()))
 	//TODO: Attempt to use their twitter username but fallback to random if failed
 	newUser := model.User{
 		Username:  fmt.Sprintf("Runner-%d", randNum.Int()),
 		Email:     providerUserData.Email,
-		TwitterID: providerUserData.UserID,
+		TwitterID: &providerUserData.UserID,
 	}
+	createdUser, err := Oauth.CreateUser(newUser)
 
-	result = database.DB.WithContext(c).Create(&newUser)
-
-	if result.Error != nil {
+	if err != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
@@ -108,6 +103,6 @@ func OauthCallback(c *gin.Context) {
 `
 	c.Status(http.StatusOK)
 	t, _ := template.New("foo").Parse(userTemplate)
-	t.Execute(c.Writer, newUser)
+	t.Execute(c.Writer, createdUser)
 
 }

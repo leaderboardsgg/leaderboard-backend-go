@@ -45,12 +45,12 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		if !user.Password.Valid {
+		if user.Password == nil {
 			log.Println("User password in database is null indicating they use oauth and not the password flow")
 			return nil, jwt.ErrFailedAuthentication
 		}
-
-		if utils.ComparePasswords(user.Password.String, []byte(password)) {
+		passwordMatches, _ := utils.ComparePasswords(user.Password, []byte(password))
+		if passwordMatches {
 			return &model.UserPersonal{
 				ID:       user.ID,
 				Email:    user.Email,

@@ -1,17 +1,16 @@
 package model
 
 import (
-	"database/sql"
-
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	Username  string `gorm:"unique"`
-	Email     string `gorm:"unique"`
-	Password  sql.NullString
-	TwitterID string `gorm:"unique"`
+	Username string `gorm:"unique"`
+	Email    string `gorm:"unique"`
+	// A user that auths using oauth wont have a password so this needs to be nil-able
+	Password  *string
+	TwitterID *string `gorm:"unique"`
 }
 
 type UserIdentifier struct {
