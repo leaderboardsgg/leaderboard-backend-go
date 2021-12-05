@@ -71,10 +71,12 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
+	hashString := string(hash)
+
 	user := model.User{
 		Username: registerValue.Username,
 		Email:    registerValue.Email,
-		Password: &hash,
+		Password: &hashString,
 	}
 
 	err = database.Users.CreateUser(&user)

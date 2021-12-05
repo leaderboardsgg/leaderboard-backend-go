@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/gin-contrib/cors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"

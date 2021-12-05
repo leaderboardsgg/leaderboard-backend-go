@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/model"
+	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
 const identityKey = "id"
@@ -49,7 +50,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			log.Println("User password in database is null indicating they use oauth and not the password flow")
 			return nil, jwt.ErrFailedAuthentication
 		}
-		passwordMatches, err := utils.ComparePasswords(user.Password, []byte(password))
+		passwordMatches, err := utils.ComparePasswords(user.Password, []byte(loginVals.Password))
 		if err != nil {
 			return nil, jwt.ErrFailedAuthentication
 		}
