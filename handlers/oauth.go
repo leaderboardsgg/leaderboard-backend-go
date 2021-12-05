@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"text/template"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgconn"
@@ -41,6 +43,15 @@ func OauthLogin(c *gin.Context) {
 
 func OauthCallback(c *gin.Context) {
 	log.Printf("%s oauth callback", c.Param("provider"))
+
+	// Technically goth works with URL params but not gins it seems
+	// So we manually set a query paramater here
+	// Its a bit hacky but :shrug:
+	// goth really should just allow people to pass in provider...
+	queryString := c.Request.URL.Query()
+	queryString.Add("provider", c.Param("provider"))
+	c.Request.URL.RawQuery = queryString.Encode()
+
 	providerUserData, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -51,24 +62,27 @@ func OauthCallback(c *gin.Context) {
 	var maybeExistingUser model.UserIdentifier
 	result := database.DB.Model(&model.User{}).Where("twitter_id = ?", providerUserData.UserID).First(&maybeExistingUser)
 
-	if result.Error != nil {
-		//@TODO: Implement error redirects
+	// No error means we found a user
+	if result.Error == nil {
+		//@TODO: Setup JWT
+		c.Redirect(http.StatusOK, "/")
+		return
+	}
+	isNotFoundError := errors.Is(result.Error, gorm.ErrRecordNotFound)
+
+	// We got an error but its something else other than not being abl
+	if !isNotFoundError {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, OauthErrorResponse{
 			Error: result.Error.Error(),
 		})
 		return
 	}
-
-	userExists := !errors.Is(err, gorm.ErrRecordNotFound)
-	if userExists {
-		//@TODO: Setup JWT
-		c.Redirect(http.StatusOK, "/")
-		return
-	}
-	//@TODO: Handle failures for random username
+	randNum := rand.New(rand.NewSource(time.Now().UnixNano()))
+	//TODO: Attempt to use their twitter username but fallback to random if failed
 	newUser := model.User{
-		Username: fmt.Sprintf("Runner-%d", rand.Int()),
-		Email:    providerUserData.Email,
+		Username:  fmt.Sprintf("Runner-%d", randNum.Int()),
+		Email:     providerUserData.Email,
+		TwitterID: providerUserData.UserID,
 	}
 
 	result = database.DB.WithContext(c).Create(&newUser)
@@ -86,7 +100,14 @@ func OauthCallback(c *gin.Context) {
 
 		return
 	}
-	//@TODO: Setup JWT
-	c.Redirect(http.StatusOK, "/")
+	//TODO: Setup JWT
+	// c.Redirect(http.StatusOK, "/")
+	userTemplate := `
+<p><a href="/logout/twitter">logout</a></p>
+<p>Name: {{.Email}}</p>
+`
+	c.Status(http.StatusOK)
+	t, _ := template.New("foo").Parse(userTemplate)
+	t.Execute(c.Writer, newUser)
 
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/speedrun-website/leaderboard-backend/database"
+	"github.com/speedrun-website/leaderboard-backend/handlers"
 	"github.com/speedrun-website/leaderboard-backend/router"
 )
 
@@ -25,6 +26,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	handlers.InitializeProviders()
 	router.InitRoutes(r)
 	port := os.Getenv("BACKEND_PORT")
 	srv := &http.Server{
