@@ -11,6 +11,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20201024163028-a0d42d470451
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/markbates/goth v1.68.0
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/rs/cors v1.8.0
 	github.com/ugorji/go v1.2.6 // indirect

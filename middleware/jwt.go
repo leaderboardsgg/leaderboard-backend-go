@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/speedrun-website/leaderboard-backend/database"
 	"github.com/speedrun-website/leaderboard-backend/model"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/speedrun-website/leaderboard-backend/utils"
 )
 
 const identityKey = "id"
@@ -46,8 +46,20 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(loginVals.Password)); err != nil {
+		if user.Password == nil {
+			log.Println("User password in database is null indicating they use oauth and not the password flow")
 			return nil, jwt.ErrFailedAuthentication
+		}
+		passwordMatches, err := utils.ComparePasswords(user.Password, []byte(loginVals.Password))
+		if err != nil {
+			return nil, jwt.ErrFailedAuthentication
+		}
+		if passwordMatches {
+			return &model.UserPersonal{
+				ID:       user.ID,
+				Email:    user.Email,
+				Username: user.Username,
+			}, nil
 		}
 
 		return &model.UserPersonal{

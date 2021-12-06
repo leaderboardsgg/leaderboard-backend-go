@@ -1,14 +1,22 @@
 package model
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
-	Username string `gorm:"unique"`
-	Email    string `gorm:"unique"`
-	Password []byte `gorm:"size:60"`
+	//These top 4 fields is equivalent to embedding gorm.Model
+	ID        uint `gorm:"primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Username  string         `gorm:"unique"`
+	Email     string         `gorm:"unique"`
+	// A user that auths using oauth wont have a password so this needs to be nil-able
+	Password  *string
+	TwitterID *string `gorm:"unique"`
 }
 
 type UserIdentifier struct {
