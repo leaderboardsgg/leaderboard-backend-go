@@ -71,7 +71,7 @@ func (s mockOauthStore) CreateUser(user model.User) (*model.User, error) {
 	return newUser, nil
 }
 
-func Test_OauthCallbackUserAuthError(t *testing.T) {
+func TestOauthCallbackUserAuthError(t *testing.T) {
 	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{}, errors.New("uh oh something went bad")
 	}
@@ -92,7 +92,7 @@ func Test_OauthCallbackUserAuthError(t *testing.T) {
 	}
 }
 
-func Test_OauthCallbackUserFetchError(t *testing.T) {
+func TestOauthCallbackUserFetchError(t *testing.T) {
 	initStore()
 	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{
@@ -131,7 +131,7 @@ func Test_OauthCallbackUserFetchError(t *testing.T) {
 	}
 }
 
-func Test_OauthCallbackUserCreationError(t *testing.T) {
+func TestOauthCallbackUserCreationError(t *testing.T) {
 	initStore()
 	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{
@@ -167,7 +167,7 @@ func Test_OauthCallbackUserCreationError(t *testing.T) {
 	}
 }
 
-func Test_OauthCallbackReturnsExistingUser(t *testing.T) {
+func TestOauthCallbackReturnsExistingUser(t *testing.T) {
 	store := initStore()
 	expectedUser, createUserErr := store.CreateUser(model.User{
 		Email:    "oauthcallbackereturn@example.com",
@@ -216,7 +216,7 @@ func Test_OauthCallbackReturnsExistingUser(t *testing.T) {
 	}
 }
 
-func Test_OauthCallbackCreatesNewUser(t *testing.T) {
+func TestOauthCallbackCreatesNewUser(t *testing.T) {
 	store := initStore()
 	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		rollingID++
@@ -260,7 +260,7 @@ func Test_OauthCallbackCreatesNewUser(t *testing.T) {
 	}
 }
 
-func Test_InitializeProviders(t *testing.T) {
+func TestInitializeProviders(t *testing.T) {
 	setEnvErr := os.Setenv("ENABLED_PROVIDERS", "twitter")
 	if setEnvErr != nil {
 		t.Fatalf("issue setting environment variable: %s", setEnvErr)
