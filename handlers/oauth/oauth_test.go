@@ -83,11 +83,10 @@ func TestOauthCallbackUserAuthError(t *testing.T) {
 		t.Fatalf("Expected %d, got %d", http.StatusInternalServerError, result.StatusCode)
 	}
 	var responseJSON oauth.OauthErrorResponse
-	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
-	if jsonError != nil {
+	if err := json.Unmarshal(rec.Body.Bytes(), &responseJSON); err != nil {
 		t.Fatalf(
 			"OauthCallback response expected OauthErrorResponse format, unmarshal failed with %s",
-			jsonError,
+			err,
 		)
 	}
 }
@@ -106,9 +105,9 @@ func TestOauthCallbackUserFetchError(t *testing.T) {
 	newQuery := url.Values{
 		"provider": []string{"twitter"},
 	}
-	req, httpRequestErr := http.NewRequest("POST", "/", nil)
-	if httpRequestErr != nil {
-		t.Fatal(httpRequestErr)
+	req, err := http.NewRequest("POST", "/", nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
@@ -119,11 +118,10 @@ func TestOauthCallbackUserFetchError(t *testing.T) {
 	}
 
 	var responseJSON oauth.OauthErrorResponse
-	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
-	if jsonError != nil {
+	if err := json.Unmarshal(rec.Body.Bytes(), &responseJSON); err != nil {
 		t.Fatalf(
 			"OauthCallback response expected OauthErrorResponse format, unmarshal failed with %s",
-			jsonError,
+			err,
 		)
 	}
 	if responseJSON.Error != "Issue finding user" {
@@ -145,9 +143,9 @@ func TestOauthCallbackUserCreationError(t *testing.T) {
 	newQuery := url.Values{
 		"provider": []string{"twitter"},
 	}
-	req, httpRequestErr := http.NewRequest("POST", "/", nil)
-	if httpRequestErr != nil {
-		t.Fatal(httpRequestErr)
+	req, err := http.NewRequest("POST", "/", nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
@@ -158,24 +156,23 @@ func TestOauthCallbackUserCreationError(t *testing.T) {
 	}
 
 	var responseJSON model.UserIdentifier
-	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
-	if jsonError != nil {
+	if err := json.Unmarshal(rec.Body.Bytes(), &responseJSON); err != nil {
 		t.Fatalf(
 			"OauthCallback response expected UserIdentifier format, unmarshal failed with %s",
-			jsonError,
+			err,
 		)
 	}
 }
 
 func TestOauthCallbackReturnsExistingUser(t *testing.T) {
 	store := initStore()
-	expectedUser, createUserErr := store.CreateUser(model.User{
+	expectedUser, err := store.CreateUser(model.User{
 		Email:    "oauthcallbackereturn@example.com",
 		Username: "iliketurtles",
 	})
 
-	if createUserErr != nil {
-		t.Fatalf("issue creating mock user %s", createUserErr)
+	if err != nil {
+		t.Fatalf("issue creating mock user %s", err)
 	}
 
 	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
@@ -190,9 +187,9 @@ func TestOauthCallbackReturnsExistingUser(t *testing.T) {
 	newQuery := url.Values{
 		"provider": []string{"twitter"},
 	}
-	req, httpRequestErr := http.NewRequest("POST", "/", nil)
-	if httpRequestErr != nil {
-		t.Fatal(httpRequestErr)
+	req, err := http.NewRequest("POST", "/", nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
@@ -203,11 +200,10 @@ func TestOauthCallbackReturnsExistingUser(t *testing.T) {
 	}
 
 	var responseJSON model.UserIdentifier
-	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
-	if jsonError != nil {
+	if err := json.Unmarshal(rec.Body.Bytes(), &responseJSON); err != nil {
 		t.Fatalf(
 			"OauthCallback response expected UserIdentifier format, unmarshal failed with %s",
-			jsonError,
+			err,
 		)
 	}
 
@@ -233,9 +229,9 @@ func TestOauthCallbackCreatesNewUser(t *testing.T) {
 		"provider": []string{"twitter"},
 	}
 
-	req, httpRequestErr := http.NewRequest("POST", "/", nil)
-	if httpRequestErr != nil {
-		t.Fatal(httpRequestErr)
+	req, err := http.NewRequest("POST", "/", nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 	req.URL.RawQuery = newQuery.Encode()
 	ctx.Request = req
@@ -246,11 +242,10 @@ func TestOauthCallbackCreatesNewUser(t *testing.T) {
 	}
 
 	var responseJSON model.UserIdentifier
-	jsonError := json.Unmarshal(rec.Body.Bytes(), &responseJSON)
-	if jsonError != nil {
+	if err := json.Unmarshal(rec.Body.Bytes(), &responseJSON); err != nil {
 		t.Fatalf(
 			"OauthCallback response expected UserIdentifier format, unmarshal failed with %s",
-			jsonError,
+			err,
 		)
 	}
 	expectedUser := store.Users[responseJSON.ID]
@@ -261,26 +256,23 @@ func TestOauthCallbackCreatesNewUser(t *testing.T) {
 }
 
 func TestInitializeProviders(t *testing.T) {
-	setEnvErr := os.Setenv("ENABLED_PROVIDERS", "twitter")
-	if setEnvErr != nil {
-		t.Fatalf("issue setting environment variable: %s", setEnvErr)
+	if err := os.Setenv("ENABLED_PROVIDERS", "twitter"); err != nil {
+		t.Fatalf("issue setting environment variable: %s", err)
 	}
 
 	oauth.InitializeProviders()
 
-	_, getProviderErr := goth.GetProvider("twitter")
-	if getProviderErr != nil {
-		t.Fatalf("issue getting twitter provider %s", getProviderErr)
+	if _, err := goth.GetProvider("twitter"); err != nil {
+		t.Fatalf("issue getting twitter provider %s", err)
 	}
+
 	goth.ClearProviders()
 
-	setEnvErr = os.Setenv("ENABLED_PROVIDERS", "fakeoauthprovider")
-	if setEnvErr != nil {
-		t.Fatalf("issue setting environment variable: %s", setEnvErr)
+	if err := os.Setenv("ENABLED_PROVIDERS", "fakeoauthprovider"); err != nil {
+		t.Fatalf("issue setting environment variable: %s", err)
 	}
 
-	provider, getProviderErr := goth.GetProvider("twitter")
-	if getProviderErr == nil {
+	if provider, err := goth.GetProvider("twitter"); err == nil {
 		t.Fatalf("expected fake provider to error but got a provider back instead %s", provider.Name())
 	}
 
