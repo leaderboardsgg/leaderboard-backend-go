@@ -26,12 +26,12 @@ var availableProviders = map[string]goth.Provider{
 		os.Getenv("TWITTER_OAUTH_CALLBACK_URL"),
 	),
 }
-var completeUserAuth = gothic.CompleteUserAuth
+var CompleteUserAuth = gothic.CompleteUserAuth
 
 func InitializeProviders() {
 	enabledProviders := strings.Split(os.Getenv("ENABLED_PROVIDERS"), ",")
 	for _, provider := range enabledProviders {
-		cleanedProvider := strings.ToUpper(strings.TrimSpace(provider))
+		cleanedProvider := strings.ToLower(strings.TrimSpace(provider))
 		maybeProvider, exists := availableProviders[cleanedProvider]
 		if exists {
 			goth.UseProviders(maybeProvider)
@@ -63,7 +63,7 @@ func OauthCallback(c *gin.Context) {
 
 	//We dont need to check for provider existance further down
 	//since this will error if the provider is one of our supported ones
-	providerUserData, err := completeUserAuth(c.Writer, c.Request)
+	providerUserData, err := CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, &OauthErrorResponse{
 			Error: err.Error(),

@@ -72,7 +72,7 @@ func (s mockOauthStore) CreateUser(user model.User) (*model.User, error) {
 }
 
 func Test_OauthCallbackUserAuthError(t *testing.T) {
-	completeUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{}, errors.New("uh oh something went bad")
 	}
 	rec := httptest.NewRecorder()
@@ -94,7 +94,7 @@ func Test_OauthCallbackUserAuthError(t *testing.T) {
 
 func Test_OauthCallbackUserFetchError(t *testing.T) {
 	initStore()
-	completeUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{
 			UserID: "error",
 		}, nil
@@ -133,7 +133,7 @@ func Test_OauthCallbackUserFetchError(t *testing.T) {
 
 func Test_OauthCallbackUserCreationError(t *testing.T) {
 	initStore()
-	completeUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{
 			UserID: "0",
 		}, nil
@@ -178,7 +178,7 @@ func Test_OauthCallbackReturnsExistingUser(t *testing.T) {
 		t.Fatalf("issue creating mock user %s", createUserErr)
 	}
 
-	completeUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		return goth.User{
 			UserID: strconv.Itoa(int(expectedUser.ID)),
 		}, nil
@@ -218,7 +218,7 @@ func Test_OauthCallbackReturnsExistingUser(t *testing.T) {
 
 func Test_OauthCallbackCreatesNewUser(t *testing.T) {
 	store := initStore()
-	completeUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+	oauth.CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 		rollingID++
 		return goth.User{
 			UserID: strconv.Itoa(int(rollingID)),
@@ -266,7 +266,7 @@ func Test_InitializeProviders(t *testing.T) {
 		t.Fatalf("issue setting environment variable: %s", setEnvErr)
 	}
 
-	InitializeProviders()
+	oauth.InitializeProviders()
 
 	_, getProviderErr := goth.GetProvider("twitter")
 	if getProviderErr != nil {
