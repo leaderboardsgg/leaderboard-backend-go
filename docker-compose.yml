@@ -13,6 +13,16 @@ services:
     ports:
       - ${POSTGRES_PORT}:5432
 
+  db-test:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+    ports:
+      - ${POSTGRES_TEST_PORT}:5432
+
   adminer:
     image: adminer
     restart: always
