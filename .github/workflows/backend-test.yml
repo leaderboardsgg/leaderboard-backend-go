@@ -18,4 +18,4 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Running Tests
-      run: make test
+      run: ENV=example.env make test

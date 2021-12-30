@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -17,8 +18,12 @@ import (
 	"github.com/speedrun-website/leaderboard-backend/server/user"
 )
 
+func getEnvPath() string {
+	return fmt.Sprintf("../../%s", os.Getenv("ENV"))
+}
+
 func init() {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(getEnvPath()); err != nil {
 		log.Fatalf("Where's the .env file?")
 	}
 
