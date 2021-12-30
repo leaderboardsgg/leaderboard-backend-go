@@ -27,8 +27,13 @@ func init() {
 		log.Fatalf("Where's the .env file?")
 	}
 
-	database.InitTest()
-	user.InitGormStore(nil)
+	if err := database.InitTest(); err != nil {
+		log.Fatalf("DB failed to initialise.")
+	}
+
+	if err := user.InitGormStore(nil); err != nil {
+		log.Fatalf("Gorm store failed to initialise.")
+	}
 }
 
 func TestAuthFlow(t *testing.T) {
@@ -338,7 +343,9 @@ func TestLogin401(t *testing.T) {
 		})
 	}
 
-	cleanupUsers([]uint{u.ID})
+	if err := cleanupUsers([]uint{u.ID}); err != nil {
+		t.Fatalf("failed cleanup: %s", err)
+	}
 }
 
 func getUsersContext() *gin.Engine {
