@@ -17,5 +17,7 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Spin up containers
+      run: docker compose --env-file example.env up -d
     - name: Running Tests
       run: ENV=example.env make test
