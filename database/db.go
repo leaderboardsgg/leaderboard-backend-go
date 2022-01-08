@@ -19,7 +19,7 @@ type dbConfig struct {
 	password string
 }
 
-func getConfig() dbConfig {
+func getDbConfig() dbConfig {
 	return dbConfig{
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_PORT"),
@@ -29,7 +29,7 @@ func getConfig() dbConfig {
 	}
 }
 
-func getTestConfig() dbConfig {
+func getTestDbConfig() dbConfig {
 	return dbConfig{
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_TEST_PORT"),
@@ -45,8 +45,8 @@ func getDns(config dbConfig) string {
 		config.host, config.port, config.user, config.dbname, config.password)
 }
 
-func Init() error {
-	config := getConfig()
+func InitGlobalConnection() error {
+	config := getDbConfig()
 	dns := getDns(config)
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
@@ -56,8 +56,8 @@ func Init() error {
 	return nil
 }
 
-func InitTest() error {
-	config := getTestConfig()
+func InitGlobalTestConnection() error {
+	config := getTestDbConfig()
 	dns := getDns(config)
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
