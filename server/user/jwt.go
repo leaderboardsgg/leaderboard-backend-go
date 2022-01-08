@@ -8,7 +8,7 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/speedrun-website/leaderboard-backend/server/common"
+	"github.com/speedrun-website/leaderboard-backend/server/request"
 )
 
 const identityKey = "id"
@@ -61,7 +61,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 		return user.AsPersonal(), nil
 	},
 	LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
-		c.JSON(http.StatusOK, common.SuccessResponse{
+		c.JSON(http.StatusOK, request.SuccessResponse{
 			Data: TokenResponse{
 				Token:  token,
 				Expiry: expire.Format(time.RFC3339),

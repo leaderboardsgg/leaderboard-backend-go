@@ -9,7 +9,7 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/speedrun-website/leaderboard-backend/server/common"
+	"github.com/speedrun-website/leaderboard-backend/server/request"
 )
 
 func PublicRoutes(r *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
@@ -65,7 +65,7 @@ func GetUserHandler(c *gin.Context) {
 			code = http.StatusInternalServerError
 		}
 
-		c.AbortWithStatusJSON(code, common.ErrorResponse{
+		c.AbortWithStatusJSON(code, request.ErrorResponse{
 			Errors: []error{
 				err,
 			},
@@ -73,7 +73,7 @@ func GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, common.SuccessResponse{
+	c.JSON(http.StatusOK, request.SuccessResponse{
 		Data: UserIdentifierResponse{
 			User: user,
 		},
@@ -113,7 +113,7 @@ func RegisterUserHandler(c *gin.Context) {
 			 * what was already here.
 			 * --RageCage
 			 */
-			c.AbortWithStatusJSON(http.StatusConflict, common.ErrorResponse{
+			c.AbortWithStatusJSON(http.StatusConflict, request.ErrorResponse{
 				Errors: []error{
 					err,
 				},
@@ -126,7 +126,7 @@ func RegisterUserHandler(c *gin.Context) {
 	}
 
 	c.Header("Location", fmt.Sprintf("/api/v1/users/%d", user.ID))
-	c.JSON(http.StatusCreated, common.SuccessResponse{
+	c.JSON(http.StatusCreated, request.SuccessResponse{
 		Data: UserIdentifierResponse{
 			User: &UserIdentifier{
 				ID:       user.ID,
@@ -144,7 +144,7 @@ func MeHandler(c *gin.Context) {
 			userInfo, err := Store.GetUserPersonalById(uint(user.ID))
 
 			if err == nil {
-				c.JSON(http.StatusOK, common.SuccessResponse{
+				c.JSON(http.StatusOK, request.SuccessResponse{
 					Data: UserPersonalResponse{
 						User: userInfo,
 					},

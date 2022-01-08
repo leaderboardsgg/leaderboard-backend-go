@@ -3,7 +3,7 @@ package user
 import (
 	"errors"
 
-	"github.com/speedrun-website/leaderboard-backend/server/common"
+	"github.com/speedrun-website/leaderboard-backend/database"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +46,7 @@ var Store UserStore
 // The UserStore interface, which defines ways that the application
 // can query for users.
 type UserStore interface {
-	common.Store
+	database.DataStore
 
 	GetUserIdentifierById(uint) (*UserIdentifier, error)
 	GetUserPersonalById(uint) (*UserPersonal, error)

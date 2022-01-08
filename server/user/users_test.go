@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/server/common"
+	"github.com/speedrun-website/leaderboard-backend/server/request"
 	"github.com/speedrun-website/leaderboard-backend/server/user"
 )
 
@@ -81,7 +81,7 @@ func testRegister(
 		t.Fatalf("it failed: %s", err)
 	}
 	var responseData user.UserIdentifierResponse
-	_, err = common.UnmarshalSuccessResponseData(responseBytes, &responseData)
+	_, err = request.UnmarshalSuccessResponseData(responseBytes, &responseData)
 	if err != nil {
 		// FIXME
 		t.Fatal("bad response format")
@@ -107,7 +107,7 @@ func testLogin(
 		t.Fatal("login failed")
 	}
 	var response user.TokenResponse
-	_, err = common.UnmarshalSuccessResponseData(responseBytes, &response)
+	_, err = request.UnmarshalSuccessResponseData(responseBytes, &response)
 	if err != nil {
 		// FIXME
 		t.Fatal("login failed response bad")
@@ -124,15 +124,15 @@ func testMe(
 ) {
 	t.Helper()
 
-	request := httptest.NewRequest(http.MethodGet, "/me", nil)
-	request.Header.Add("Authorization", "Bearer "+token)
-	responseBytes, err := testGetRequest(r, "/me", http.StatusOK, request)
+	req := httptest.NewRequest(http.MethodGet, "/me", nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+	responseBytes, err := testGetRequest(r, "/me", http.StatusOK, req)
 	if err != nil {
 		// FIXME
 		t.Fatalf("me failed: %s", err)
 	}
 	var responseData user.UserPersonalResponse
-	_, err = common.UnmarshalSuccessResponseData(responseBytes, &responseData)
+	_, err = request.UnmarshalSuccessResponseData(responseBytes, &responseData)
 	if err != nil {
 		// FIXME
 		t.Fatal("me failed response bad")
@@ -151,9 +151,9 @@ func testRefreshToken(
 ) {
 	t.Helper()
 
-	request := httptest.NewRequest(http.MethodGet, "/refresh_token", nil)
-	request.Header.Add("Authorization", "Bearer "+token)
-	responseBytes, err := testGetRequest(r, "/refresh_token", http.StatusOK, request)
+	req := httptest.NewRequest(http.MethodGet, "/refresh_token", nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+	responseBytes, err := testGetRequest(r, "/refresh_token", http.StatusOK, req)
 	if err != nil {
 		// FIXME
 		t.Fatalf("refresh_token failed: %s", err)
@@ -161,7 +161,7 @@ func testRefreshToken(
 	var response struct {
 		Token string `json:"token"`
 	}
-	_, err = common.UnmarshalSuccessResponseData(responseBytes, &response)
+	_, err = request.UnmarshalSuccessResponseData(responseBytes, &response)
 	if err != nil {
 		// FIXME
 		t.Fatal("refresh_token failed response bad")

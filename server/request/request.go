@@ -1,4 +1,4 @@
-package common
+package request
 
 import (
 	"encoding/json"
@@ -38,8 +38,4 @@ func UnmarshalSuccessResponseData(
 
 type ErrorResponse struct {
 	Errors []error `json:"errors"`
-}
-
-type Store interface {
-	DumpDeleted() error
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/speedrun-website/leaderboard-backend/server/common"
+	"github.com/speedrun-website/leaderboard-backend/server/request"
 )
 
 func PublicRoutes(r *gin.RouterGroup) {
@@ -20,7 +20,7 @@ type PingResponse struct {
 }
 
 func pingHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, common.SuccessResponse{
+	c.JSON(http.StatusOK, request.SuccessResponse{
 		Data: PingResponse{
 			Message: "pong",
 		},
@@ -28,7 +28,7 @@ func pingHandler(c *gin.Context) {
 }
 
 func authPingHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, common.SuccessResponse{
+	c.JSON(http.StatusOK, request.SuccessResponse{
 		Data: PingResponse{
 			Message: "authenticated pong",
 		},
