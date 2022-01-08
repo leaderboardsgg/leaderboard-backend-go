@@ -27,7 +27,7 @@ func init() {
 		log.Fatalf("Where's the .env file?")
 	}
 
-	if err := database.InitTest(); err != nil {
+	if err := database.InitGlobalTestConnection(); err != nil {
 		log.Fatalf("DB failed to initialise.")
 	}
 

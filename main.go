@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := database.Init(); err != nil {
+	if err := database.InitGlobalConnection(); err != nil {
 		log.Fatal(err)
 	}
 
