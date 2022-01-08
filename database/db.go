@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 type dbConfig struct {
 	host     string
 	port     string
@@ -17,28 +19,50 @@ type dbConfig struct {
 	password string
 }
 
-var config = dbConfig{
-	os.Getenv("POSTGRES_HOST"),
-	os.Getenv("POSTGRES_PORT"),
-	os.Getenv("POSTGRES_USER"),
-	os.Getenv("POSTGRES_DB"),
-	os.Getenv("POSTGRES_PASSWORD"),
+func getDbConfig() dbConfig {
+	return dbConfig{
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_DB"),
+		os.Getenv("POSTGRES_PASSWORD"),
+	}
 }
 
-var dns = fmt.Sprintf(
-	"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-	config.host, config.port, config.user, config.dbname, config.password)
+func getTestDbConfig() dbConfig {
+	return dbConfig{
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_TEST_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_TEST_DB"),
+		os.Getenv("POSTGRES_PASSWORD"),
+	}
+}
 
-func Init() error {
-	DB, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
+func getDns(config dbConfig) string {
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		config.host, config.port, config.user, config.dbname, config.password)
+}
+
+func InitGlobalConnection() error {
+	config := getDbConfig()
+	dns := getDns(config)
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
 		return err
 	}
+	DB = db
+	return nil
+}
 
-	err = initGormUserStore(DB)
+func InitGlobalTestConnection() error {
+	config := getTestDbConfig()
+	dns := getDns(config)
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
 		return err
 	}
-
+	DB = db
 	return nil
 }

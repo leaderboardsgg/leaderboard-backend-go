@@ -12,20 +12,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/router"
+	"github.com/speedrun-website/leaderboard-backend/server"
 )
 
 func main() {
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load(os.Getenv("ENV")); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := database.Init(); err != nil {
+	if err := database.InitGlobalConnection(); err != nil {
 		log.Fatal(err)
 	}
 
 	r := gin.Default()
-	router.InitRoutes(r)
+	server.Init(r)
 	port := os.Getenv("BACKEND_PORT")
 	srv := &http.Server{
 		Addr:    ":" + port,

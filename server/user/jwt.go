@@ -1,18 +1,22 @@
-package middleware
+package user
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/speedrun-website/leaderboard-backend/database"
-	"github.com/speedrun-website/leaderboard-backend/model"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/speedrun-website/leaderboard-backend/server/request"
 )
 
 const identityKey = "id"
+
+type TokenResponse struct {
+	Token  string `json:"token"`
+	Expiry string `json:"expiry"`
+}
 
 var JwtConfig = &jwt.GinJWTMiddleware{
 	Realm:       "test zone",
@@ -21,7 +25,7 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	MaxRefresh:  time.Hour,
 	IdentityKey: identityKey,
 	PayloadFunc: func(d interface{}) jwt.MapClaims {
-		if v, ok := d.(*model.UserPersonal); ok {
+		if v, ok := d.(*UserPersonal); ok {
 			return jwt.MapClaims{
 				identityKey: strconv.FormatUint(uint64(v.ID), 36),
 			}
@@ -30,31 +34,39 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	},
 	IdentityHandler: func(c *gin.Context) interface{} {
 		claims := jwt.ExtractClaims(c)
-		id, _ := strconv.ParseUint(claims[identityKey].(string), 36, 0)
-		return &model.UserPersonal{
+		idStr := claims[identityKey].(string)
+		id, _ := strconv.ParseUint(idStr, 36, 0)
+		return &UserPersonal{
 			ID: uint(id),
 		}
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
-		var loginVals model.UserLogin
+		var loginVals UserLogin
 		if err := c.ShouldBindJSON(&loginVals); err != nil {
 			return nil, jwt.ErrMissingLoginValues
 		}
 
-		user, err := database.Users.GetUserByEmail(loginVals.Email)
+		email := loginVals.Email
+		password := loginVals.Password
+
+		user, err := Store.GetUserByEmail(email)
 		if err != nil {
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(loginVals.Password)); err != nil {
+		if !ComparePasswords(user.Password, []byte(password)) {
 			return nil, jwt.ErrFailedAuthentication
 		}
 
-		return &model.UserPersonal{
-			ID:       user.ID,
-			Email:    user.Email,
-			Username: user.Username,
-		}, nil
+		return user.AsPersonal(), nil
+	},
+	LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
+		c.JSON(http.StatusOK, request.SuccessResponse{
+			Data: TokenResponse{
+				Token:  token,
+				Expiry: expire.Format(time.RFC3339),
+			},
+		})
 	},
 	Unauthorized: func(c *gin.Context, code int, message string) {
 		c.JSON(code, gin.H{
@@ -81,21 +93,19 @@ var JwtConfig = &jwt.GinJWTMiddleware{
 	TimeFunc: time.Now,
 }
 
-func GetGinJWTMiddleware() *jwt.GinJWTMiddleware {
+func GetAuthMiddlewareHandler() *jwt.GinJWTMiddleware {
 	// the jwt middleware
-	authMiddleware, err := jwt.New(JwtConfig)
-
+	authMiddlware, err := jwt.New(JwtConfig)
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
 	// When you use jwt.New(), the function is already automatically called for checking,
 	// which means you don't need to call it again.
-	errInit := authMiddleware.MiddlewareInit()
-
-	if errInit != nil {
-		log.Fatal("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
+	err = authMiddlware.MiddlewareInit()
+	if err != nil {
+		log.Fatalf("authMiddleware.MiddlewareInit() Error: %s", err)
 	}
 
-	return authMiddleware
+	return authMiddlware
 }
