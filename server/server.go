@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
 
-	"github.com/speedrun-website/leaderboard-backend/server/ping"
 	"github.com/speedrun-website/leaderboard-backend/server/user"
 )
 
@@ -27,12 +26,10 @@ func Init(router *gin.Engine) {
 	authMiddleware := user.GetAuthMiddlewareHandler()
 	api := router.Group("/api/v1")
 
-	ping.PublicRoutes(api)
 	user.PublicRoutes(api, authMiddleware)
 
 	api.Use(authMiddleware.MiddlewareFunc())
 	{
-		ping.AuthRoutes(api)
 		user.AuthRoutes(api, authMiddleware)
 	}
 }
