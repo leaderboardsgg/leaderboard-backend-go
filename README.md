@@ -1,4 +1,8 @@
-# leaderboard-backend
+# leaderboard-backend-go
+
+**THIS IS DEPRECATED** (sadly ;_;). Please look at our current backend [here](https://github.com/leaderboardsgg/leaderboard-backend).
+
+------
 
 An open-source community-driven leaderboard backend for the gaming community.
 
